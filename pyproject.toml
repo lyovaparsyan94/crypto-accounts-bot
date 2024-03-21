@@ -8,6 +8,20 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 ruff = "^0.3.0"
+requests = "^2.31.0"
+beautifulsoup4 = "^4.12.3"
+pandas = "^2.2.1"
+pyyaml = "^6.0.1"
+lxml = "^5.1.0"
+openpyxl = "^3.1.2"
+selenium = "^4.18.1"
+temp-mail = "^0.2"
+temporary-mail = "^1.6"
+tempmail-python = "^2.3.3"
+undetected-chromedriver = "^3.5.5"
+twilio = "^9.0.2"
+imap-tools = "^1.5.0"
+redbox = "^0.2.1"
 
 
 [build-system]
@@ -27,6 +41,7 @@ select = [
     "F",
     "UP",
     "I",
+    "ANN",
 ]
 
 [tool.ruff.format]
