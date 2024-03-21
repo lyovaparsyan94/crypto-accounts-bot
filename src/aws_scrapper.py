@@ -19,6 +19,7 @@ class AwsRegistrator:
         self.tell_number = "2013514000"
         self.first_name = "Pau"
         self.last_name = "Storer"
+        self.full_name = f"{self.first_name} {self.last_name}"
         self.bank_number = "4278627431140307"
         self.valid_date = "08/25"
         self.cvv = "678"
@@ -69,18 +70,18 @@ class AwsRegistrator:
         root_field2 = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-4"]')
         root_field2.clear()
         self.slow_input(root_field2, sequence=root)
-        print('Need verify code')
+        print('Passed root code')
         verify = self.driver.find_element(By.XPATH, '//*[@id="CredentialCollection"]/fieldset/awsui-button[1]/button')
         verify.click()
-        time.sleep(20)
+        time.sleep(7)
 
     def step_four(self):
         personal = self.driver.find_element(By.XPATH, '//*[@id="awsui-radio-button-2"]')
         personal.click()
         time.sleep(1)
 
-        full_name_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-8"]')
-        self.slow_input(full_name_field, f"{self.first_name} {self.last_name}")
+        full_name_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-5"]')
+        self.slow_input(full_name_field, self.full_name)
         time.sleep(1)
 
         phone_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-10"]')
@@ -126,7 +127,7 @@ class AwsRegistrator:
         self.slow_input(cvv_field, self.cvv)
 
         cardholder_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-19"]')
-        self.slow_input(cardholder_field, f"{self.first_name} {self.last_name}")
+        self.slow_input(cardholder_field, self.full_name)
 
         verify_step = self.driver.find_element(By.XPATH, '//*[@id="PaymentInformation"]/fieldset/awsui-button/button')
         verify_step.click()
@@ -170,5 +171,3 @@ class AwsRegistrator:
         time.sleep(32)
 
 
-aws = AwsRegistrator("dorothylft78qc@gmail.com", 'aizv rivk yvjo snkc')
-aws.register()
