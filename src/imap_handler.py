@@ -11,25 +11,27 @@ class ImapHandler:
         self.user = user
         self.password = password
 
-    # def get_confirm_message(self):
-    #     imap = imaplib.IMAP4_SSL(self.host)
-    #     imap.login(self.user, self.password)
-    #     imap.select('Inbox')
-    #
-    #     # tmp, messages = imap.search(None, 'ALL')
-    #     # for num in messages[0].split():
-    #     #     tmp, data = imap.fetch(num, '(RFC822)')
-    #     #     print('tmp', tmp)
-    #     #     pprint(data)
-    #     #     break
-    #     imap.close()
-    #     imap.logout()
+    def get_confirm_message(self):
+        imap = imaplib.IMAP4_SSL(self.host)
+        imap.login(self.user, self.password)
+        imap.select('Inbox')
+
+        tmp, messages = imap.search(None, 'ALL')
+        for num in messages[0].split():
+            tmp, data = imap.fetch(num, '(RFC822)')
+            print('tmp', tmp)
+            print(data)
+            pprint(data)
+        imap.close()
+        imap.logout()
 
     def mailbox_confirm_message(self):
         verify_codes = [None]
         with MailBox(self.host).login(self.user, self.password, 'INBOX') as mailbox:
             for msg in mailbox.fetch(A(all=True)):
                 sender = msg.from_
+                print(sender)
+                # print(msg.text)
                 if sender in ['amazonaws', 'no-reply@amazonaws.com', 'no-reply@signup.aws']:
                     body = msg.text
                     match = re.search(r"\b\d{6}\b", body)
@@ -44,5 +46,7 @@ class ImapHandler:
         return verify_codes[-1]
 
 
-# a = ImapHandler("dorothylft78qc@gmail.com", 'aizv rivk yvjo snkc')
-# b = a.mailbox_confirm_message()
+# a = ImapHandler("levaparsyan@dot-agency.net", 'pwol xyab lesl suph')
+# a = ImapHandler("5jffivhb@duck.com", 'pwol xyab lesl suph')
+# a.mailbox_confirm_message()
+# a.get_confirm_message()
