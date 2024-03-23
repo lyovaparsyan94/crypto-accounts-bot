@@ -22,6 +22,9 @@ undetected-chromedriver = "^3.5.5"
 twilio = "^9.0.2"
 imap-tools = "^1.5.0"
 redbox = "^0.2.1"
+phonenumbers = "^8.13.32"
+python-dotenv = "^1.0.1"
+2captcha-python = "^1.2.2"
 
 
 [build-system]

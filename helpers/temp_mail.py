@@ -20,7 +20,7 @@ def check_last_message(email, retry=5, interval=5):
             try:
                 for msg in inbox:
                     sender = msg.from_addr
-                    if sender in ['.aws', 'no-reply@amazonaws.com', 'no-reply@signup.aws'] or 'signup.aws' in sender:
+                    if sender in ['.aws', 'no-reply@amazonaws.com', 'no-reply@signup.aws'] or 'aws' in sender:
                         body = msg.message.text_body
                         match = re.search(r"\b\d{6}\b", body)
                         if match:
@@ -35,5 +35,5 @@ def check_last_message(email, retry=5, interval=5):
         return messages[-1]
 
 
-# check_last_message('qaoqelntgi@txcct.com')
+check_last_message('bkxkeactqp@ezztt.com')
 

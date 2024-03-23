@@ -1,8 +1,10 @@
 import time
 import json
+import random
 import undetected_chromedriver as uc
 from helpers.temp_mail import check_last_message
 from selenium import webdriver
+from recaptcha_solver import CaptchaSolver
 from helpers.randomizer import generate_root_name
 from imap_handler import ImapHandler
 from selenium.webdriver.common.by import By
@@ -10,15 +12,17 @@ from selenium.common import NoSuchElementException
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from helpers.phone_identifier import get_country_code, get_national_number
 
 
 class AwsRegistrator:
     def __init__(self, email=None, password=None):
         self.options = uc.ChromeOptions()
-        self.options.add_argument("--proxy-server=171.243.3.55:4006")
-        self.options.add_argument(r'--user-data-dir=C:\Users\parsy\AppData\Local\Google\Chrome\User Data\Profile')
+        # self.options.add_argument("--proxy-server=171.243.3.55:4006")
+        # self.options.add_argument(r'--user-data-dir=C:\Users\parsy\AppData\Local\Google\Chrome\User Data\Profile')
         # self.driver = webdriver.Chrome()
         self.driver = uc.Chrome(options=self.options)
+        self.solver = CaptchaSolver()
         self.email = email
         self.password = password
         self.account_name = email[0:-4].capitalize()
@@ -73,7 +77,7 @@ class AwsRegistrator:
 
     def step_three(self):
         time.sleep(3)
-        root = self.account_name + '!!1@1@#'
+        root = self.account_name + '!1@#'
         root_field1 = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-3"]')
         root_field1.clear()
         self.slow_input(root_field1, sequence=root)
@@ -131,9 +135,6 @@ class AwsRegistrator:
         card_number_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-14"]')
         self.slow_input(card_number_field, self.bank_number)
 
-        # mouth = self.driver.find_element(By.ID, '//*[@id="expirationMonth"]')
-        # sel = Select(mouth)
-        # sel.select_by_value('March')
         mouth_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-3"]')
         mouth_field.click()
         mouth = self.driver.find_element(By.XPATH, f"//div[@data-value='{self.valid_date[:2]}']")
@@ -154,11 +155,37 @@ class AwsRegistrator:
         verify_step.click()
         time.sleep(5)
 
+    def step_six(self):
+        country_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-5"]')
+        country_field.click()
+        time.sleep(2)
+
+        region = get_country_code(self.tell_number)
+        mouth = self.driver.find_element(By.XPATH, f"//div[contains(@data-value, '{region}')]")
+        mouth.click()
+        time.sleep(2)
+
+        national_number_field = self.driver.find_element(By.XPATH, '//*[@id="phoneNumber"]/div/input')
+        national_number = get_national_number(self.tell_number)
+        self.slow_input(national_number_field, national_number)
+        time.sleep(20)
+
+        image = self.driver.find_element(By.XPATH,
+                                         "//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
+        image_src = image.get_attribute('src')
+        captcha_code = self.solver.get_captcha_code(image_src=image_src)
+        input_captcha = self.driver.find_element(By.XPATH, "//*[@id='captchaGuess'] //input[@name='captchaGuess']")
+        self.slow_input(input_captcha, captcha_code)
+
+        verify = self.driver.find_element(By.XPATH, "//button[span[text()='Send SMS (step 4 of 5)']]")
+        verify.click()
+
+
     @staticmethod
     def slow_input(field_to_fill, sequence):
         for symbol in sequence:
             field_to_fill.send_keys(symbol)
-            # time.sleep(random.choice([0.70, 0.91, 0.83, 0.55, 0.41, 0.63, 0.15, 0.21, 0.33]))
+            time.sleep(random.choice([0.70, 0.91, 0.83, 0.55, 0.41, 0.63, 0.15, 0.21, 0.33]))
             # time.sleep(0.05)
 
     def is_element_present(self, by_type, locator):
@@ -188,4 +215,6 @@ class AwsRegistrator:
         self.step_four()
         time.sleep(5)
         self.step_five()
+        time.sleep(5)
+        self.step_six()
         time.sleep(32)
