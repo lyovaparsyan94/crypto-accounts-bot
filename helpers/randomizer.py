@@ -12,9 +12,9 @@ def generate_root_name():
         select = choice(string.ascii_lowercase)
         password += select
     for i in range(5):
-        select = choice(string.punctuation)
+        select = choice('(){}@!#-+=[]')
         password += select
-    for i in range(size + 1):
-        select = choice(string.digits)
-        password += select
+    # for i in range(size + 1):
+    #     select = choice(string.digits)
+    #     password += select
     return password

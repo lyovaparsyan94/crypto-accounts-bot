@@ -9,4 +9,4 @@ def get_country_code(phone):
 
 def get_national_number(phone):
     number = phonenumbers.parse(phone)
-    return number.national_number
+    return f"{number.national_number}"

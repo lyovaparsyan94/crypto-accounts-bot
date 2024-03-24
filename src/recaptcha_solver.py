@@ -13,4 +13,4 @@ class CaptchaSolver:
 
     def get_captcha_code(self, image_src):
         captcha_code = self.solver.normal(image_src)
-        return captcha_code
+        return captcha_code['code']
