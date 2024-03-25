@@ -1,16 +1,20 @@
 import json
+from configs.constants import PHONE_LIMIT, EMAIL_LIMIT, CARD_LIMIT, AWS_FILENAME
 
 
 class FileHandler:
     def __init__(self):
-        self.used_times = 9
+        self.phone_limit = PHONE_LIMIT
+        self.mail_limit = EMAIL_LIMIT
+        self.card_limit = CARD_LIMIT
 
     def save_data(self, data):
         with open('aws_registered_users.json', 'w') as file:
             json.dump(data, file, indent=2)
 
+    def check_limits(self, email, phone, card):
 
-a = FileHandler()
+
 
 users = {
     "users": [
@@ -56,4 +60,4 @@ users = {
 
 }
 
-# a.save_data(users)
+file_handler = FileHandler()

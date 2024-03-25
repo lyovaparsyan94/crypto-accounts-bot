@@ -8,11 +8,12 @@ DATA_DIR = join(ROOT_DIR, join('data'))
 LOGS_DIR = join(ROOT_DIR, join('logs'))
 
 URL = "https://www.akamai.com/create-account"
-COOKIES_ID = "onetrust-accept-btn-handler"
-EMAIL_ID = "BizEmail"
-USER_NAME_ID = "BizUsername"
-PASSWORD_ID = "BizPassword"
-SUBMIT_FIRST_XPATH = "//button[@class='o-button']"
-
+AWS_FILENAME = "aws_data"
 TELS_ID = 'iso_code'
-CAPTCHA_API_KEY = '81d0c80606eb7773b4dbc170fa309a61'
+
+PHONE_LIMIT = 9
+CARD_LIMIT = 9
+EMAIL_LIMIT = 9
+
+
+
