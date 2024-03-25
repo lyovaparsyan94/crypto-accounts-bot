@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 from twocaptcha import TwoCaptcha
-from selenium.webdriver.common.by import By
 
 load_dotenv()
 

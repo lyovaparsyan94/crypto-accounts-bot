@@ -1,4 +1,3 @@
-
 from aws_scrapper  import AwsRegistrator
 from helpers.temp_mail import generate_mail
 

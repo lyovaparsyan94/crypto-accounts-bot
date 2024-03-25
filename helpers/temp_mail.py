@@ -7,7 +7,7 @@ from tempmail import EMail
 def generate_mail():
     email = EMail()
     email = email.address
-    print(email)
+    print(f"generated: {email}")
     return email
 
 
@@ -16,6 +16,7 @@ def check_last_message(email, retry=5, interval=5):
     email = EMail(email)
     inbox = email.get_inbox()
     if len(inbox) == 0:
+        print('inbox is empty')
         return False
     messages = []
     while not messages and retry >= 1 and len(inbox) > 0:
@@ -32,6 +33,6 @@ def check_last_message(email, retry=5, interval=5):
         except BaseException as e:
             retry -= 1
             sleep(interval)
-            print(f"Retrying {5 - retry} time after {interval} seconds interval")
+            print(f"Verify code not found, retrying {5 - retry}")
     return messages[-1]
 

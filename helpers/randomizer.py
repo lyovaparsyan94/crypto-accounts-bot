@@ -14,7 +14,5 @@ def generate_root_name():
     for i in range(5):
         select = choice('(){}@!#-+=[]')
         password += select
-    # for i in range(size + 1):
-    #     select = choice(string.digits)
-    #     password += select
+    print(f'generated root name: {password}')
     return password
