@@ -1,6 +1,0 @@
-tell_number = "+37477970340"
-first_name = "Lyova"
-last_name = "Parsyan"
-bank_number = "4318290010100164"
-valid_date = "03/22"
-cvv = "626"
