@@ -1,22 +1,34 @@
 import re
 import time
 from time import sleep
+from typing import Union
+
 from tempmail import EMail
 
 
-def generate_mail():
+def generate_mail() -> str:
+    """
+    Generates a temporary email address for receive verification message from AWS then to it.
+
+    Returns:
+        str: The generated email address.
+    """
     email = EMail()
     email = email.address
     print(f"generated: {email}")
     return email
 
 
-def check_last_message(email, retry=5, interval=5):
+def check_last_message(email: str, retry: int = 5, interval: int = 5) -> Union[bool, str]:
+    """
+    Retrieves the last verification code from the email inbox.
+    Returns:
+        The last verification code if found, or False if the inbox is empty.
+    """
     time.sleep(5)
     email = EMail(email)
     inbox = email.get_inbox()
     if len(inbox) == 0:
-        print('inbox is empty')
         return False
     messages = []
     while not messages and retry >= 1 and len(inbox) > 0:
@@ -30,7 +42,7 @@ def check_last_message(email, retry=5, interval=5):
                         code = match.group()
                         print(f"Verification code: {code}")
                         messages.append(code)
-        except BaseException as e:
+        except BaseException:
             retry -= 1
             sleep(interval)
             print(f"Verify code not found, retrying {5 - retry}")

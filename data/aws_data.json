@@ -1,0 +1,45 @@
+{
+  "users": [
+    {
+      "45wenenenwenwe-+": {
+        "first_name": "",
+        "last_name": "Armen Armenyan",
+        "card_number": "",
+        "valid_date": "",
+        "cvv": "",
+        "cardholder": "",
+        "phone": "+37477970340",
+        "full_name": "",
+        "email": "Armen@Armenyan",
+        "root_pass": "45wenenenwenwe-+",
+        "account_name": "Babken@Armenyan",
+        "verify_email_code": "+444444444",
+        "city": "+37477970340",
+        "postal_code": "",
+        "country": "",
+        "full_address": "",
+        "card": "111111111111111"
+      }
+    }
+  ],
+  "used_phones_count": {
+    "+442071234567": 10,
+    "+442071214567": 3,
+    "+442071214167": 6,
+    "+37477970340": 1
+  },
+  "used_cards_count": {
+    "1025 1202 1245 9548": 1,
+    "9876 5432 3645 7654": 3,
+    "9876 5432 1098 1478": 8,
+    "1234567890123456": 6,
+    "111111111111111": 1
+  },
+  "used_emails_count": {
+    "alex.smith@example.com": 1,
+    "bill.smith@example.com": 3,
+    "john.smith@example.com": 8,
+    "Armen@Armenyan": 2,
+    "Babken@Armenyan": 1
+  }
+}

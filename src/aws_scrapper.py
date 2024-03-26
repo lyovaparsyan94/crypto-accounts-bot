@@ -5,7 +5,9 @@ from traceback import print_stack
 from imap_handler import ImapHandler
 import undetected_chromedriver as uc
 from recaptcha_solver import CaptchaSolver
+from configs.constants import USER_DATA_DIR
 from selenium.webdriver.common.by import By
+from helpers.file_handler import FileHandler
 from helpers.randomizer import generate_root_name
 from selenium.webdriver.support.ui import WebDriverWait
 from helpers.temp_mail import check_last_message, generate_mail
@@ -16,16 +18,17 @@ from selenium.common import NoSuchElementException, ElementNotVisibleException, 
 
 class AwsRegistrator:
     def __init__(self, email=None, password=None):
+        self.user_info = None
         self.options = uc.ChromeOptions()
         # self.options.add_argument("--proxy-server=171.243.3.55:4006")
-        self.options.add_argument(r'--user-data-dir=C:\Users\parsy\AppData\Local\Google\Chrome\User Data\Profile')
+        self.options.add_argument(rf'--user-data-dir={USER_DATA_DIR}')
         # self.driver = webdriver.Chrome()
         self.driver = uc.Chrome(options=self.options)
         self.solver = CaptchaSolver()
+        self.file_handler = FileHandler()
         self.email = email
         self.password = password
         self.account_name = email[0:-4].capitalize()
-        # self.account_name = email[0:-4].capitalize()
         self.tell_number = "+37477970340"
         self.first_name = "Pau"
         self.last_name = "Storer"
@@ -322,7 +325,8 @@ class AwsRegistrator:
         return element
 
     def register(self):
-        self.open_page()
+        """Registers an AWS account by completing the required steps."""  # TODO need finish registation steps, when will be ready all components
+        self.open_page()                                                  # TODO and made all tests
         self.step_one()
         self.step_two()
         self.step_three()

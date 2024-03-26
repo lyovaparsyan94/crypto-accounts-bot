@@ -19,8 +19,6 @@ class ImapHandler:
         tmp, messages = imap.search(None, 'ALL')
         for num in messages[0].split():
             tmp, data = imap.fetch(num, '(RFC822)')
-            print('tmp', tmp)
-            print(data)
             pprint(data)
         imap.close()
         imap.logout()
@@ -45,8 +43,3 @@ class ImapHandler:
         print(verify_codes[-1])
         return verify_codes[-1]
 
-
-# a = ImapHandler("levaparsyan@dot-agency.net", 'pwol xyab lesl suph')
-# a = ImapHandler("5jffivhb@duck.com", 'pwol xyab lesl suph')
-# a.mailbox_confirm_message()
-# a.get_confirm_message()

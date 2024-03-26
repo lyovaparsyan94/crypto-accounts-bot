@@ -1,7 +1,14 @@
 import json
-from typing import Union, Dict
-from configs.constants import PHONE_LIMIT, EMAIL_LIMIT, CARD_LIMIT, AWS_FILENAME, DATA_DIR, REQUIRED_FIELDS, \
-    MANDATORY_FIELDS
+
+from configs.constants import (
+    AWS_FILENAME,
+    CARD_LIMIT,
+    DATA_DIR,
+    EMAIL_LIMIT,
+    MANDATORY_FIELDS,
+    PHONE_LIMIT,
+    REQUIRED_FIELDS,
+)
 
 
 class FileHandler:
@@ -27,7 +34,7 @@ class FileHandler:
                 result = used_times
         return result
 
-    def is_possible_to_use(self, value: str, field: str = 'cards') -> Union[int, None]:
+    def is_possible_to_use(self, value: str, field: str = 'cards') -> int | None:
         """checks if value of field not used more than set limit """
         limit = self.get_limit(value=value, field=field)
         if limit or limit == 0:
@@ -40,7 +47,7 @@ class FileHandler:
         return None
 
     @staticmethod
-    def get_current_data(filename: str = AWS_FILENAME) -> Dict:
+    def get_current_data(filename: str = AWS_FILENAME) -> dict:
         """load file from current json file into dict, by default from AWS_FILENAME, configured from constants"""
         with open(fr'{DATA_DIR}/{filename}.json') as file:
             return json.load(file)
