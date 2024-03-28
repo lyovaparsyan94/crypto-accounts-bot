@@ -10,18 +10,18 @@ from faker import Faker
 
 def generate_root_name():
     password = ''
-    size = 25
-    for i in range(size + 1):
+    size = 24
+    for i in range(int(size/4) + 1):
         select = choice(string.ascii_uppercase)
         password += select
-    for i in range(size + 1):
+    for i in range(int(size/4) + 1):
         select = choice(string.ascii_lowercase)
         password += select
-    for i in range(3):
+    for i in range(int(size/4) + 1):
         select = choice(string.digits)
         password += select
-    for i in range(3):
-        select = choice(string.punctuation)
+    for i in range(int(size/4) + 1):
+        select = choice('!@#=-')
         password += select
     print(f'generated root name: {password}')
     return password

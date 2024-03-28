@@ -3,9 +3,10 @@ from configs.constants import CAPTCHA_API_KEY
 
 
 class CaptchaSolver:
-    def __init__(self):
+    def __init__(self, driver):
         self.__api_key = CAPTCHA_API_KEY
         self.solver = TwoCaptcha(self.__api_key)
+        self.driver = driver
 
     def get_captcha_code(self, image_src: str) -> str:
         """

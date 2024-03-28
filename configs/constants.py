@@ -13,7 +13,7 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 DATA_DIR = join(ROOT_DIR, join('data'))
 LOGS_DIR = join(ROOT_DIR, join('logs'))
 
-URL = "https://www.akamai.com/create-account"
+URL = "https://portal.aws.amazon.com/billing/signup#/identityverification"
 AWS_FILENAME = "aws_data.json"
 TELS_ID = 'iso_code'
 PATH_TO_SAVE = os.path.join(DATA_DIR, AWS_FILENAME)

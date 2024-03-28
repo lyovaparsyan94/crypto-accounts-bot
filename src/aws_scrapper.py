@@ -1,19 +1,15 @@
 import time
-import random
-from selenium import webdriver
-from traceback import print_stack
+from configs.constants import URL
 from imap_handler import ImapHandler
 import undetected_chromedriver as uc
-from recaptcha_solver import CaptchaSolver
 from selenium.webdriver.common.by import By
 from helpers.file_handler import FileHandler
 from helpers.randomizer import generate_root_name, generate_first_last_name, generate_cardholder_name, \
     generate_card_data as card_data, generate_random_addresses as addresses
-from selenium.webdriver.support.ui import WebDriverWait
+from helpers.element_handler import ElementHandler
 from helpers.temp_mail import check_last_message, generate_mail
-from selenium.webdriver.support import expected_conditions as EC
 from helpers.phone_identifier import get_country_code, get_national_number
-from selenium.common import NoSuchElementException, ElementNotVisibleException, ElementNotSelectableException
+from selenium.common import NoSuchElementException
 
 
 class AwsRegistrator:
@@ -26,7 +22,7 @@ class AwsRegistrator:
         # self.options.add_argument(r'--user-data-dir=C:\Users\parsy\AppData\Local\Google\Chrome\User Data\Profile')
         # self.driver = webdriver.Chrome()
         self.driver = uc.Chrome(options=self.options)
-        self.solver = CaptchaSolver()
+        self.element_handler = ElementHandler(driver=self.driver)
         self.email = email
         self.root_name = None
         self.password = password
@@ -35,11 +31,11 @@ class AwsRegistrator:
         self.phone = "+37477970340"
         self.first_name, self.last_name = generate_first_last_name()
         self.full_name = f"{self.first_name} {self.last_name}"
-        self.cardholder_name = generate_cardholder_name()
+        self.cardholder = generate_cardholder_name()
         self.card, self.cvv, self.valid_date = card_data()['card_number'], card_data()['cvv'], card_data()[
             'expiry_date']
         self.address, self.city, self.state, self.postal_code, self.country, self.full_address = addresses().values()
-        self.url = "https://portal.aws.amazon.com/billing/signup#/identityverification"
+        self.url = URL
         if password:
             self.imap_instance = ImapHandler(self.email, self.password)
 
@@ -53,35 +49,39 @@ class AwsRegistrator:
         while retry >= 1 and warning_email:
             try:
                 self.email_confirm()
-            except NoSuchElementException as e:
+            except NoSuchElementException:
                 retry -= 1
                 time.sleep(interval)
                 retry -= 5
                 print(f"Confirming email {5 - retry} time")
             finally:
-                warning_email = self.is_shown_warning(warning_xpath='//*[@id="awsui-input-0"]', name='email warning')
+                warning_email = self.element_handler.is_shown_warning(warning_xpath='//*[@id="awsui-input-0"]',
+                                                                      name='email warning')
 
     def email_confirm(self, email=None):
-        # root_email_field = self.wait_for_element(locator='//*[@id="awsui-input-0"]')
-        root_email_field = self.wait_for_element(locator="//div//input[@name='emailAddress']")
-        while not self.is_element_present(locator="//div//input[@name='emailAddress']"):
+        # root_email_field = wait_for_element(locator='//*[@id="awsui-input-0"]')
+        root_email_field = self.element_handler.wait_for_element(locator="//div//input[@name='emailAddress']",
+                                                                 timeout=10, name='root email field')
+        # while not self.element_handler.is_element_present(locator="//div//input[@name='emailAddress']"):
+        while not root_email_field:
             time.sleep(1)
         else:
             root_email_field.clear()
         if email is None:
-            self.slow_input(root_email_field, self.email)
+            self.element_handler.slow_input(root_email_field, self.email)
         else:
             email = generate_mail()
             self.email = email
         time.sleep(1)
         # acc_name = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-1"]')
-        acc_name_field = self.wait_for_element(locator="//div//input[@name='fullName']")
-        while not self.is_element_present(locator="//div//input[@name='fullName']"):
+        acc_name_field = self.element_handler.wait_for_element(locator="//div//input[@name='fullName']", timeout=6,
+                                                               name='account field')
+        while not self.element_handler.is_element_present(locator="//div//input[@name='fullName']"):
             time.sleep(1)
         else:
             acc_name_field.clear()
         self.account_name = self.email[0:-4].capitalize()
-        self.slow_input(acc_name_field, self.account_name)
+        self.element_handler.slow_input(acc_name_field, self.account_name)
         verify_email = self.driver.find_element(By.XPATH,
                                                 '//*[@id="EmailValidationSendOTP"]/fieldset/awsui-button[1]/button')
         verify_email.click()
@@ -89,7 +89,7 @@ class AwsRegistrator:
         return email
 
     def step_two(self):
-        while not self.wait_for_element("//awsui-input[@id='otp']/div/input[@name='otp']"):
+        while not self.element_handler.wait_for_element("//awsui-input[@id='otp']/div/input[@name='otp']"):
             time.sleep(1)
         else:
             confirm_mail = self.driver.find_element(By.XPATH, "//awsui-input[@id='otp']/div/input[@name='otp']")
@@ -101,7 +101,7 @@ class AwsRegistrator:
             if verify_code:
                 verify_button = self.driver.find_element(By.XPATH,
                                                          '//*[@id="EmailValidationVerifyOTP"]/fieldset/awsui-button[1]/button')
-                self.slow_input(confirm_mail, sequence=verify_code)
+                self.element_handler.slow_input(confirm_mail, sequence=verify_code)
                 self.verify_email_code = verify_code
                 verify_button.click()
             while not verify_code:
@@ -111,13 +111,13 @@ class AwsRegistrator:
                 self.step_one()
 
     def step_three(self, retry=15, interval=4):
-        time.sleep(2)
         root_name = False
         warning_shown = True
-        # verify_button = self.wait_for_element(By.XPATH,
-        #                                       "//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]")
-        verify_button = self.driver.find_element(By.XPATH,
-                                                 "//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]")
+        verify_button = self.element_handler.wait_for_element(
+            locator="//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]",
+            name='verify_button')
+        # verify_button = self.driver.find_element(By.XPATH,
+        #                                          "//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]")
         while not self.root_name and warning_shown:
             try:
                 temp_root_name = self.root_confirm()
@@ -128,14 +128,14 @@ class AwsRegistrator:
                 time.sleep(interval)
             finally:
                 time.sleep(2)
-                warning_shown = self.is_element_present(
+                warning_shown = self.element_handler.is_element_present(
                     locator="//a[@href='https://support.aws.amazon.com/#/contacts/aws-account-support']")
                 if not warning_shown and temp_root_name:
-                    captcha_shown = self.is_element_present(locator='//div[contains(@class, "Captcha_mainDisplay")]',
-                                                            name='captcha')
+                    captcha_shown = self.element_handler.is_element_present(
+                        locator='//div[contains(@class, "Captcha_mainDisplay")]', name='captcha')
                     while captcha_shown:
                         try:
-                            self.captcha_resolve(
+                            self.element_handler.try_solve_captcha(
                                 xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
                             captcha_shown = False
                             verify_button.click()
@@ -152,14 +152,14 @@ class AwsRegistrator:
         time.sleep(2)
         root_field1 = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-3"]')
         root_field1.clear()
-        self.slow_input(root_field1, sequence=root_name)
+        self.element_handler.slow_input(root_field1, sequence=root_name)
         root_field2 = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-4"]')
         root_field2.clear()
-        self.slow_input(root_field2, sequence=root_name)
+        self.element_handler.slow_input(root_field2, sequence=root_name)
         return root_name
 
     def step_four(self):
-        while not self.is_element_present('//*[@id="awsui-radio-button-2"]'):
+        while not self.element_handler.is_element_present('//*[@id="awsui-radio-button-2"]'):
             time.sleep(1)
         else:
             personal = self.driver.find_element(By.XPATH, '//*[@id="awsui-radio-button-2"]')
@@ -167,7 +167,7 @@ class AwsRegistrator:
             time.sleep(1)
 
             full_name_field = self.driver.find_element(By.XPATH, "//div//input[@name='address.fullName']")
-            self.slow_input(full_name_field, self.full_name)
+            self.element_handler.slow_input(full_name_field, self.full_name)
             time.sleep(1)
 
             region = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-1"]')
@@ -179,7 +179,7 @@ class AwsRegistrator:
             time.sleep(1)
 
             phone_field = self.driver.find_element(By.XPATH, '//input[@name="address.phoneNumber"]')
-            self.slow_input(phone_field, get_national_number(self.phone))
+            self.element_handler.slow_input(phone_field, get_national_number(self.phone))
             time.sleep(1)
 
             country_or_region = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-2"]')
@@ -189,19 +189,19 @@ class AwsRegistrator:
             found_county.click()
             time.sleep(1)
             address_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-9"]')
-            self.slow_input(address_field, self.full_address)
+            self.element_handler.slow_input(address_field, self.full_address)
             time.sleep(1)
 
             city = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-11"]')
-            self.slow_input(city, self.city)
+            self.element_handler.slow_input(city, self.city)
             time.sleep(1)
 
             state_region_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-12"]')
-            self.slow_input(state_region_field, self.state)
+            self.element_handler.slow_input(state_region_field, self.state)
             time.sleep(1)
 
             postal_code = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-13"]')
-            self.slow_input(postal_code, self.postal_code)
+            self.element_handler.slow_input(postal_code, self.postal_code)
             time.sleep(1)
 
             agree_checkbox = self.driver.find_element(By.XPATH, '//*[@id="awsui-checkbox-0"]')
@@ -219,9 +219,9 @@ class AwsRegistrator:
                                                     'postal_code', 'full_address'])
 
     def step_five(self):
-        time.sleep(3)
-        card_number_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-14"]')
-        self.slow_input(card_number_field, self.card)
+        card_number_field = self.element_handler.wait_for_element(locator='//*[@id="awsui-input-14"]',
+                                                                  name='card_field', timeout=3)
+        self.element_handler.slow_input(card_number_field, self.card)
 
         mouth_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-3"]')
         mouth_field.click()
@@ -233,50 +233,42 @@ class AwsRegistrator:
         year_field.click()
         mouth = self.driver.find_element(By.XPATH, f"//div[@data-value='{self.valid_date[3:]}']")
         mouth.click()
-        time.sleep(1)
 
         cvv_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-15"]')
-        self.slow_input(cvv_field, self.cvv)
-        time.sleep(1)
+        self.element_handler.slow_input(cvv_field, self.cvv)
 
         cardholder_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-16"]')
-        self.slow_input(cardholder_field, self.cardholder_name)
-        time.sleep(2)
+        self.element_handler.slow_input(cardholder_field, self.cardholder)
 
         verify_step = self.driver.find_element(By.XPATH, '//*[@id="PaymentInformation"]/fieldset/awsui-button/button')
         verify_step.click()
-        time.sleep(5)
 
-        self.file_handler.update_aws_user_info(root_password=self.root_name, field="card",
-                                               value=self.card)
-        self.file_handler.update_aws_user_info(root_password=self.root_name, field="valid_date", value=self.valid_date)
-        self.file_handler.update_aws_user_info(root_password=self.root_name, field="cvv", value=self.cvv)
-        self.file_handler.update_aws_user_info(root_password=self.root_name, field="cardholder",
-                                               value=self.cardholder_name)
+        self.update_aws_multiple_fields(root_password=self.root_name,
+                                        fields=['card', 'valid_date', 'cvv', 'cardholder'])
 
     def step_six(self):
-        print('--started step six')
-        country_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-5"]')
+        country_field = self.element_handler.wait_for_element(locator='//*[@id="awsui-select-5"]', timeout=10,
+                                                              name='country_field')
         country_field.click()
-        time.sleep(2)
 
         region = get_country_code(self.phone)
-        mouth = self.driver.find_element(By.XPATH, f"//div[contains(@data-value, '{region}')]")
-        mouth.click()
-        time.sleep(2)
+        month = self.element_handler.wait_for_element(locator=f"//div[contains(@data-value, '{region}')]", timeout=10,
+                                                      name='month_field')
+        month.click()
 
-        national_number_field = self.driver.find_element(By.XPATH, '//*[@id="phoneNumber"]/div/input')
+        national_number_field = self.element_handler.wait_for_element(locator='//*[@id="phoneNumber"]/div/input',
+                                                                      timeout=10, name='national_number_field')
         national_number = get_national_number(self.phone)
         print(f'national number: {national_number}')
-        self.slow_input(national_number_field, national_number)
-        time.sleep(4)
+        self.element_handler.slow_input(national_number_field, national_number)
 
-    def step_seven(self, retry=5, interval=3):
+    def step_seven(self, retry=10, interval=3):
         warning1 = True
         warning2 = True
         while (retry >= 1 and warning1) or (retry >= 1 and warning2):
             try:
-                self.captcha_resolve(xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
+                self.element_handler.try_solve_captcha(
+                    xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
                 verify = self.driver.find_element(By.XPATH, "//button[span[text()='Send SMS (step 4 of 5)']]")
                 verify.click()
             except BaseException:
@@ -284,97 +276,27 @@ class AwsRegistrator:
                 retry -= 1
                 time.sleep(interval)
             finally:
-                warning1 = self.is_shown_warning(warning_xpath="//a[@href='https://aws.amazon.com/support/createCase']",
-                                                 name='captcha1')
-                warning2 = self.is_shown_warning(
-                    warning_xpath="//form[@id='IdentityVerification']//div[contains(text(), 'Security check characters are incorrect. Please try again.')]",
+                warning1 = self.element_handler.wait_for_element(
+                    locator="//a[@href='https://aws.amazon.com/support/createCase']",
+                    name='captcha1')
+                warning2 = self.element_handler.wait_for_element(
+                    locator="//form[@id='IdentityVerification']//div[contains(text(), 'Security check characters are incorrect. Please try again.')]",
                     name='captcha2')
 
-    def try_solve_captcha(self, xpath, retry=5, interval=3):
-        print('trying to solve captcha')
-        warning1 = True
-        warning2 = True
-        while (retry >= 1 and warning1) or (retry >= 1 and warning2):
-            try:
-                self.captcha_resolve(xpath=xpath)
-            except BaseException:
-                time.sleep(2)
-                retry -= 1
-                time.sleep(interval)
-            finally:
-                warning1 = self.is_shown_warning(warning_xpath="//a[@href='https://aws.amazon.com/support/createCase']",
-                                                 name='captcha1')
-                warning2 = self.is_shown_warning(
-                    warning_xpath="//form[@id='IdentityVerification']//div[contains(text(), 'Security check characters are incorrect. Please try again.')]",
-                    name='captcha2')
-                if warning1 is False and warning2 is False:
-                    print('2 warningns false')
-                    return True
+    def step_eight(self):
+        sms_input_field = self.element_handler.wait_for_element(locator='div//input[@name="smsPin"]', name='sms field',
+                                                                timeout=20)
+        sms_code = ...
+        self.element_handler.slow_input(sms_input_field, sms_code)
+
+        verify_sms_button = self.driver.find_element(By.XPATH, '//button[contains(span, "Continue (step 4 of 5)")]')
+        verify_sms_button.click()
+        time.sleep(30)
 
     def update_aws_multiple_fields(self, root_password: str, fields: list) -> None:
         for field in fields:
             value = getattr(self, field)  # Get the value of the attribute dynamically
             self.file_handler.update_aws_user_info(root_password=root_password, field=field, value=value)
-
-    def captcha_resolve(self, xpath):
-        image = self.driver.find_element(By.XPATH, xpath)
-        image_src = image.get_attribute('src')
-        captcha_code = self.solver.get_captcha_code(image_src=image_src)
-        print(f'captcha code: {captcha_code}')
-        input_captcha = self.driver.find_element(By.XPATH, "//*[@id='captchaGuess'] //input[@name='captchaGuess']")
-        self.slow_input(input_captcha, captcha_code)
-
-    @staticmethod
-    def slow_input(field_to_fill, sequence):
-        for symbol in sequence:
-            field_to_fill.send_keys(symbol)
-            # time.sleep(random.choice([0.70, 0.91, 0.83, 0.55, 0.41, 0.63, 0.15, 0.21, 0.33]))
-            time.sleep(0.03)
-
-    def is_shown_warning(self, warning_xpath: str = '', name: str = None) -> bool:
-        if warning_xpath is None:
-            return True
-        try:
-            element = self.driver.find_element(By.XPATH, warning_xpath)
-            if element.is_displayed():
-                return True
-            else:
-                return False
-        except NoSuchElementException:
-            print(f"The warning element '{name}' not shown on the page.")
-            return False
-
-    def is_element_present(self, locator: str, by_type: str = 'xpath', name: str = '') -> bool:
-        try:
-            element = self.driver.find_element(by_type, locator)
-            if element is not None:
-                print('Element found')
-                return True
-            else:
-                return False
-        except NoSuchElementException:
-            print(f"Element {locator} with type {by_type} not found {name}")
-            return False
-        except Exception as e:
-            print(f"Unknown Error {e} {name}")
-            return False
-
-    def wait_for_element(self, locator, by_type='xpath', timeout=30, poll_frequency=0.5):
-        element = None
-        try:
-            self.driver.implicitly_wait(0)
-            print(f"Waiting for maximum ---{str(timeout)} ---- seconds for element")
-            wait = WebDriverWait(self.driver, timeout=timeout, poll_frequency=poll_frequency, ignored_exceptions=[
-                NoSuchElementException,
-                ElementNotVisibleException,
-                ElementNotSelectableException])
-            element = wait.until(EC.visibility_of_element_located((by_type, locator)))
-            print("Element appeared on the web page")
-        except:
-            print("Element NOT appeared on the web page")
-            print_stack()
-            self.driver.implicitly_wait(2)
-        return element
 
     def register(self):
         """Registers an AWS account by completing the required steps."""  # TODO need finish registation steps, when will be ready all components
@@ -386,4 +308,5 @@ class AwsRegistrator:
         self.step_five()
         self.step_six()
         self.step_seven()
+        self.step_eight()
         time.sleep(32)
