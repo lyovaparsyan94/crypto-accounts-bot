@@ -363,6 +363,17 @@ files = [
 ]
 
 [[package]]
+name = "credit-card-info-generator"
+version = "1.0"
+description = "Credit Card Info Generator is a Python package designed to create realistic dummy credit card data. It's a handy tool for developers who need to test payment systems, verify eCommerce applications, or any situation where real credit card data is not necessary or desirable.It supports a variety of card providers and generates corresponding credit card numbers, CVVs, and expiry dates."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "credit_card_info_generator-1.0-py3-none-any.whl", hash = "sha256:320ec2dd34d623b35fedb65bd39cd8106f148fa9969b4456477ae34b0fb16b33"},
+    {file = "credit_card_info_generator-1.0.tar.gz", hash = "sha256:95d9586dc9f8a0ee3bdea01aae292533474d1c6b9f82d1fb54c9058618e8b8ec"},
+]
+
+[[package]]
 name = "et-xmlfile"
 version = "1.1.0"
 description = "An implementation of lxml.xmlfile for the standard library"
@@ -372,6 +383,20 @@ files = [
     {file = "et_xmlfile-1.1.0-py3-none-any.whl", hash = "sha256:a2ba85d1d6a74ef63837eed693bcb89c3f752169b0e3e7ae5b16ca5e1b3deada"},
     {file = "et_xmlfile-1.1.0.tar.gz", hash = "sha256:8eb9e2bc2f8c97e37a2dc85a09ecdcdec9d8a396530a6d5a33b30b9a92da0c5c"},
 ]
+
+[[package]]
+name = "faker"
+version = "24.4.0"
+description = "Faker is a Python package that generates fake data for you."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "Faker-24.4.0-py3-none-any.whl", hash = "sha256:998c29ee7d64429bd59204abffa9ba11f784fb26c7b9df4def78d1a70feb36a7"},
+    {file = "Faker-24.4.0.tar.gz", hash = "sha256:a5ddccbe97ab691fad6bd8036c31f5697cfaa550e62e000078d1935fa8a7ec2e"},
+]
+
+[package.dependencies]
+python-dateutil = ">=2.4"
 
 [[package]]
 name = "frozenlist"
@@ -682,6 +707,16 @@ files = [
     {file = "multidict-6.0.5-cp39-cp39-win_amd64.whl", hash = "sha256:d6f6d4f185481c9669b9447bf9d9cf3b95a0e9df9d169bbc17e363b7d5487755"},
     {file = "multidict-6.0.5-py3-none-any.whl", hash = "sha256:0d63c74e3d7ab26de115c49bffc92cc77ed23395303d496eae515d4204a625e7"},
     {file = "multidict-6.0.5.tar.gz", hash = "sha256:f7e301075edaf50500f0b341543c41194d8df3ae5caf4702f2095f3ca73dd8da"},
+]
+
+[[package]]
+name = "names"
+version = "0.3.0"
+description = "Generate random names"
+optional = false
+python-versions = "*"
+files = [
+    {file = "names-0.3.0.tar.gz", hash = "sha256:726e46254f2ed03f1ffb5d941dae3bc67c35123941c29becd02d48d0caa2a671"},
 ]
 
 [[package]]
@@ -1107,6 +1142,20 @@ files = [
     {file = "PyYAML-6.0.1-cp39-cp39-win_amd64.whl", hash = "sha256:510c9deebc5c0225e8c96813043e62b680ba2f9c50a08d3724c7f28a747d1486"},
     {file = "PyYAML-6.0.1.tar.gz", hash = "sha256:bfdf460b1736c775f2ba9f6a92bca30bc2095067b8a9d77876d1fad6cc3b4a43"},
 ]
+
+[[package]]
+name = "random-address"
+version = "1.1.1"
+description = "Tool to retrieve a real random address that geocode successfully"
+optional = false
+python-versions = "*"
+files = [
+    {file = "random-address-1.1.1.tar.gz", hash = "sha256:93c16439139417d29812a0e64d48f871bd31ab5529ae74cb9e4d6d3bdfc7c7c5"},
+    {file = "random_address-1.1.1-py3-none-any.whl", hash = "sha256:52785b8fc661fd5cf5cf7ff0413d7e3f0ea04f502f263df46468b3370cc15f5b"},
+]
+
+[package.extras]
+dev = ["pytest (>=3.7)"]
 
 [[package]]
 name = "redbox"
@@ -1581,4 +1630,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "4a19bd8e8998ce91e6010c0a757c54de16871e3b5e7e9df6aa0870d1f79f66cd"
+content-hash = "dd12d84bfdc95f9f46ce736ad594dc8673bd3c8d574d8a9856d0b751bb64c8b6"

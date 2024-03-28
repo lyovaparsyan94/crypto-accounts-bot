@@ -26,6 +26,10 @@ phonenumbers = "^8.13.32"
 python-dotenv = "^1.0.1"
 2captcha-python = "^1.2.2"
 pydantic-settings = "^2.2.1"
+names = "^0.3.0"
+credit-card-info-generator = "^1.0"
+random-address = "^1.1.1"
+faker = "^24.4.0"
 
 
 [build-system]

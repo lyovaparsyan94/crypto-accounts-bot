@@ -7,7 +7,8 @@ import undetected_chromedriver as uc
 from recaptcha_solver import CaptchaSolver
 from selenium.webdriver.common.by import By
 from helpers.file_handler import FileHandler
-from helpers.randomizer import generate_root_name
+from helpers.randomizer import generate_root_name, generate_first_last_name, generate_cardholder_name, \
+    generate_card_data as card_data, generate_random_addresses as addresses
 from selenium.webdriver.support.ui import WebDriverWait
 from helpers.temp_mail import check_last_message, generate_mail
 from selenium.webdriver.support import expected_conditions as EC
@@ -32,19 +33,12 @@ class AwsRegistrator:
         self.verify_email_code = None
         self.account_name = email[0:-4].capitalize()
         self.phone = "+37477970340"
-        self.first_name = "Michael"
-        self.last_name = "Muller"
+        self.first_name, self.last_name = generate_first_last_name()
         self.full_name = f"{self.first_name} {self.last_name}"
-        self.cardholder_name = "Pau Storer"
-        self.card = "4278627431140898"
-        self.valid_date = "08/25"
-        self.cvv = "678"
-        self.city = 'Yerevan'
-        self.state = ' '
-        self.postal_code = '0064'
-        self.country = 'Armenia'
-        # self.address = f'1913 Belleau Dr, {self.city}, {self.state} {self.postal_code}, USA'
-        self.full_address = f'26 Sebastia St, {self.city}, {self.state} {self.postal_code}, {self.country}'
+        self.cardholder_name = generate_cardholder_name()
+        self.card, self.cvv, self.valid_date = card_data()['card_number'], card_data()['cvv'], card_data()[
+            'expiry_date']
+        self.address, self.city, self.state, self.postal_code, self.country, self.full_address = addresses().values()
         self.url = "https://portal.aws.amazon.com/billing/signup#/identityverification"
         if password:
             self.imap_instance = ImapHandler(self.email, self.password)
@@ -217,26 +211,6 @@ class AwsRegistrator:
                                                        '//*[@id="ContactInformation"]/fieldset/awsui-button/button')
             time.sleep(1)
             continue_button.click()
-
-            # self.file_handler.update_aws_user_info(root_password=self.root_name, field="first_name",
-            #                                        value=self.first_name)
-            # self.file_handler.update_aws_user_info(root_password=self.root_name, field="last_name",
-            #                                        value=self.last_name)
-            # self.file_handler.update_aws_user_info(root_password=self.root_name, field="phone", value=self.phone)
-            # self.file_handler.update_aws_user_info(root_password=self.root_name, field="email", value=self.email)
-            # self.file_handler.update_aws_user_info(root_password=self.root_name, field="account_name",
-            #                                        value=self.account_name)
-            # self.file_handler.update_aws_user_info(root_password=self.root_name, field="verify_email_code",
-            #                                        value=self.verify_email_code)
-            # self.file_handler.update_aws_user_info(root_password=self.root_name, field="full_name",
-            #                                        value=self.full_name)
-            # self.file_handler.update_aws_user_info(root_password=self.root_name, field="city", value=self.city)
-            # self.file_handler.update_aws_user_info(root_password=self.root_name, field="state", value=self.state)
-            # self.file_handler.update_aws_user_info(root_password=self.root_name, field="country", value=self.country)
-            # self.file_handler.update_aws_user_info(root_password=self.root_name, field="postal_code",
-            #                                        value=self.postal_code)
-            # self.file_handler.update_aws_user_info(root_password=self.root_name, field="full_address",
-            #                                        value=self.full_address)
             self.update_aws_multiple_fields(root_password=self.root_name,
                                             fields=['first_name', 'last_name', 'phone', 'email',
                                                     'account_name',
@@ -245,7 +219,6 @@ class AwsRegistrator:
                                                     'postal_code', 'full_address'])
 
     def step_five(self):
-        print('--started step five')
         time.sleep(3)
         card_number_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-14"]')
         self.slow_input(card_number_field, self.card)
@@ -258,7 +231,7 @@ class AwsRegistrator:
 
         year_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-4"]')
         year_field.click()
-        mouth = self.driver.find_element(By.XPATH, f"//div[@data-value='20{self.valid_date[3:]}']")
+        mouth = self.driver.find_element(By.XPATH, f"//div[@data-value='{self.valid_date[3:]}']")
         mouth.click()
         time.sleep(1)
 
@@ -355,8 +328,8 @@ class AwsRegistrator:
     def slow_input(field_to_fill, sequence):
         for symbol in sequence:
             field_to_fill.send_keys(symbol)
-            time.sleep(random.choice([0.70, 0.91, 0.83, 0.55, 0.41, 0.63, 0.15, 0.21, 0.33]))
-            # time.sleep(0.03)
+            # time.sleep(random.choice([0.70, 0.91, 0.83, 0.55, 0.41, 0.63, 0.15, 0.21, 0.33]))
+            time.sleep(0.03)
 
     def is_shown_warning(self, warning_xpath: str = '', name: str = None) -> bool:
         if warning_xpath is None:
