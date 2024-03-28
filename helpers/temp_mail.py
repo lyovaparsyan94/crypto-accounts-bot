@@ -25,7 +25,6 @@ def check_last_message(email: str, retry: int = 5, interval: int = 5) -> Union[b
     Returns:
         The last verification code if found, or False if the inbox is empty.
     """
-    time.sleep(5)
     email = EMail(email)
     inbox = email.get_inbox()
     if len(inbox) == 0:

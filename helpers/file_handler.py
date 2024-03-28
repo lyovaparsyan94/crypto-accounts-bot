@@ -1,4 +1,5 @@
 import json
+import os.path
 
 from configs.constants import (
     AWS_FILENAME,
@@ -7,21 +8,11 @@ from configs.constants import (
     EMAIL_LIMIT,
     MANDATORY_FIELDS,
     PHONE_LIMIT,
-    REQUIRED_FIELDS,
+    REQUIRED_FIELDS, PATH_TO_SAVE,
 )
 
 
 class FileHandler:
-    def __init__(self):
-        self.phone_limit = PHONE_LIMIT
-        self.mail_limit = EMAIL_LIMIT
-        self.card_limit = CARD_LIMIT
-
-    @staticmethod
-    def save_data(data: dict, filename: str = AWS_FILENAME) -> None:
-        """save data in json, by default in the 'filename' directory configured from constants"""
-        with open(fr'{DATA_DIR}/{filename}.json', 'w') as file:
-            json.dump(data, file, indent=2)
 
     def get_limit(self, value: str, field: str = 'cards') -> int:
         """field must be cards or emails or phones"""
@@ -49,7 +40,7 @@ class FileHandler:
     @staticmethod
     def get_current_data(filename: str = AWS_FILENAME) -> dict:
         """load file from current json file into dict, by default from AWS_FILENAME, configured from constants"""
-        with open(fr'{DATA_DIR}/{filename}.json') as file:
+        with open(f"{PATH_TO_SAVE}") as file:
             return json.load(file)
 
     def create_aws_user_info(self, root_password: str) -> bool:
@@ -66,7 +57,7 @@ class FileHandler:
             users_info[root_password] = {
                 "first_name": "",
                 "last_name": "",
-                "card_number": "",
+                "card": "",
                 "valid_date": "",
                 "cvv": "",
                 "cardholder": "",
@@ -112,3 +103,19 @@ class FileHandler:
         if info_updated:
             self.save_data(data=current_data)
 
+    def save_data(self, data: dict, filename: str = PATH_TO_SAVE) -> None:
+        """
+        Save data in JSON format to a file.
+
+        Args:
+            data (dict): The data to be saved.
+            filename (str, optional): The name of the file (default: AWS_FILENAME).
+
+        Returns:
+            None
+        """
+        with open(f"{PATH_TO_SAVE}", 'w') as file:
+            json.dump(data, file, indent=2)
+
+
+a = FileHandler()
