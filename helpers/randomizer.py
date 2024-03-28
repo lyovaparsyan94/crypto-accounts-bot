@@ -10,19 +10,22 @@ from faker import Faker
 
 def generate_root_name():
     password = ''
-    size = 24
-    for i in range(int(size/4) + 1):
-        select = choice(string.ascii_uppercase)
-        password += select
-    for i in range(int(size/4) + 1):
-        select = choice(string.ascii_lowercase)
-        password += select
-    for i in range(int(size/4) + 1):
-        select = choice(string.digits)
-        password += select
-    for i in range(int(size/4) + 1):
-        select = choice('!@#=-')
-        password += select
+    size = 25
+
+    for i in range(size):
+        if i % 2 == 0:
+            select = choice(string.ascii_lowercase)
+            password += select
+        elif i % 3 == 0:
+            select = choice(string.ascii_uppercase)
+            password += select
+        # elif i % 5 == 0:
+        #     select = choice(string.digits)
+        #     password += select
+        else:
+            select = choice('!@#=+-')
+            password += select
+
     print(f'generated root name: {password}')
     return password
 
@@ -61,3 +64,6 @@ def generate_random_addresses():
         "full_address": f"{address},  USA"
     }
     return fake_info
+
+
+generate_root_name()

@@ -1,5 +1,4 @@
 import json
-import os.path
 
 from configs.constants import (
     AWS_FILENAME,

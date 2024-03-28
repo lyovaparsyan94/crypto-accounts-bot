@@ -10,6 +10,7 @@ from helpers.element_handler import ElementHandler
 from helpers.temp_mail import check_last_message, generate_mail
 from helpers.phone_identifier import get_country_code, get_national_number
 from selenium.common import NoSuchElementException
+from online_sim import OnlineSimHandler
 
 
 class AwsRegistrator:
@@ -19,7 +20,7 @@ class AwsRegistrator:
         self.user_created = False
         # self.options.add_argument("--proxy-server=159.203.61.169:3128")
         # self.options.add_argument(rf'--user-data-dir={USER_DATA_DIR}')
-        # self.options.add_argument(r'--user-data-dir=C:\Users\parsy\AppData\Local\Google\Chrome\User Data\Profile')
+        self.options.add_argument(r'--user-data-dir=C:\Users\parsy\AppData\Local\Google\Chrome\User Data\Profile')
         # self.driver = webdriver.Chrome()
         self.driver = uc.Chrome(options=self.options)
         self.element_handler = ElementHandler(driver=self.driver)
@@ -28,7 +29,9 @@ class AwsRegistrator:
         self.password = password
         self.verify_email_code = None
         self.account_name = email[0:-4].capitalize()
-        self.phone = "+37477970340"
+        # self.phone = "+37477970340"
+        self.sim_handler = OnlineSimHandler()
+        self.phone = self.sim_handler.phone
         self.first_name, self.last_name = generate_first_last_name()
         self.full_name = f"{self.first_name} {self.last_name}"
         self.cardholder = generate_cardholder_name()
@@ -284,13 +287,16 @@ class AwsRegistrator:
                     name='captcha2')
 
     def step_eight(self):
-        sms_input_field = self.element_handler.wait_for_element(locator='div//input[@name="smsPin"]', name='sms field',
+        sms_input_field = self.element_handler.wait_for_element(locator='//div//input[@name="smsPin"]', name='sms field',
                                                                 timeout=20)
-        sms_code = ...
+        sms_input_field.clear()
+
+        sms_code = self.sim_handler.get_aws_code()
         self.element_handler.slow_input(sms_input_field, sms_code)
 
         verify_sms_button = self.driver.find_element(By.XPATH, '//button[contains(span, "Continue (step 4 of 5)")]')
         verify_sms_button.click()
+        self.file_handler.update_aws_user_info(root_password=self.root_name, field='phone', value=self.phone)
         time.sleep(30)
 
     def update_aws_multiple_fields(self, root_password: str, fields: list) -> None:
