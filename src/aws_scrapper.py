@@ -37,8 +37,8 @@ class AwsRegistrator:
         self.full_name = f"{self.first_name} {self.last_name}"
         self.cardholder_name = "Pau Storer"
         self.card = "4278627431140898"
-        self.valid_date = "07/26"
-        self.cvv = "777"
+        self.valid_date = "08/25"
+        self.cvv = "678"
         self.city = 'Yerevan'
         self.state = ' '
         self.postal_code = '0064'
@@ -117,11 +117,13 @@ class AwsRegistrator:
                 self.step_one()
 
     def step_three(self, retry=15, interval=4):
+        time.sleep(2)
         root_name = False
         warning_shown = True
-        verify_button = self.wait_for_element(By.XPATH,"//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]")
-        # verify_button = self.driver.find_element(By.XPATH,
-        #                                          "//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]")
+        # verify_button = self.wait_for_element(By.XPATH,
+        #                                       "//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]")
+        verify_button = self.driver.find_element(By.XPATH,
+                                                 "//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]")
         while not self.root_name and warning_shown:
             try:
                 temp_root_name = self.root_confirm()
@@ -160,7 +162,6 @@ class AwsRegistrator:
         root_field2 = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-4"]')
         root_field2.clear()
         self.slow_input(root_field2, sequence=root_name)
-        time.sleep(3)
         return root_name
 
     def step_four(self):
