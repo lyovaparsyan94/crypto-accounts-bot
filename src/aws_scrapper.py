@@ -22,7 +22,7 @@ class AwsRegistrator:
         self.user_created = False
         # self.options.add_argument("--proxy-server=159.203.61.169:3128")
         # self.options.add_argument(rf'--user-data-dir={USER_DATA_DIR}')
-        self.options.add_argument(r'--user-data-dir=C:\Users\parsy\AppData\Local\Google\Chrome\User Data\Profile')
+        # self.options.add_argument(r'--user-data-dir=C:\Users\parsy\AppData\Local\Google\Chrome\User Data\Profile')
         # self.driver = webdriver.Chrome()
         self.driver = uc.Chrome(options=self.options)
         self.solver = CaptchaSolver()

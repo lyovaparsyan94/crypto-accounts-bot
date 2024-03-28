@@ -3,7 +3,7 @@ from os.path import join
 from dotenv import load_dotenv
 
 load_dotenv()
-CAPTCHA_API_KEY = os.getenv('CAPTCHA_API_KEY')
+CAPTCHA_API_KEY = '81d0c80606eb7773b4dbc170fa309a61'
 
 USER_DATA_DIR = os.getenv('USER_DATA_DIR')
 
