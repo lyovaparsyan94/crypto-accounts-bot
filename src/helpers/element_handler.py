@@ -62,7 +62,7 @@ class ElementHandler:
         for symbol in sequence:
             field_to_fill.send_keys(symbol)
             # sleep(choice([0.70, 0.91, 0.83, 0.55, 0.41, 0.63, 0.15, 0.21, 0.33]))
-            sleep(0.35)
+            # sleep(0.35)
 
     def try_solve_captcha(self, xpath, retry=5, interval=3):
         print('trying to solve captcha')

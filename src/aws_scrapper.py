@@ -2,7 +2,7 @@ import time
 
 import undetected_chromedriver as uc
 from async_simhandler import AsyncOnlimeSimHandler
-from configs.constants import CARD_NUMBER, CVV, EXPIRE_DATE, URL
+from configs.constants import CARD_NUMBER, CVV, EXPIRE_DATE, URL, CARDHOLDER
 from helpers.element_handler import ElementHandler
 from helpers.file_handler import FileHandler
 from helpers.phone_identifier import get_country_code, get_national_number
@@ -36,7 +36,8 @@ class AwsRegistrator:
         self.phone = None
         self.first_name, self.last_name = generate_first_last_name()
         self.full_name = f"{self.first_name} {self.last_name}"
-        self.cardholder = generate_cardholder_name()
+        # self.cardholder = generate_cardholder_name()
+        self.cardholder = CARDHOLDER
         # self.card, self.cvv, self.valid_date = card_data()['card_number'], card_data()['cvv'], card_data()['expiry_date']
         self.card, self.cvv, self.valid_date = CARD_NUMBER, CVV, EXPIRE_DATE
         self.address, self.city, self.state, self.postal_code, self.country, self.full_address = addresses().values()
@@ -118,11 +119,11 @@ class AwsRegistrator:
     def step_three(self, retry=15, interval=4):
         root_name = False
         warning_shown = True
-        verify_button = self.element_handler.wait_for_element(
-            locator="//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]",
-            name='verify_button')
-        # verify_button = self.driver.find_element(By.XPATH,
-        #                                          "//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]")
+        # verify_button = self.element_handler.wait_for_element(
+        #     locator="//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]", timeout=3,
+        #     name='verify_button')
+        verify_button = self.driver.find_element(By.XPATH,
+                                                 "//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]")
         while not self.root_name and warning_shown:
             try:
                 temp_root_name = self.root_confirm()
@@ -136,17 +137,18 @@ class AwsRegistrator:
                 warning_shown = self.element_handler.is_element_present(
                     locator="//a[@href='https://support.aws.amazon.com/#/contacts/aws-account-support']")
                 if not warning_shown and temp_root_name:
-                    captcha_shown = self.element_handler.is_element_present(
-                        locator='//div[contains(@class, "Captcha_mainDisplay")]', name='captcha')
+                    captcha_shown = self.element_handler.wait_for_element(
+                                locator='//div[contains(@class, "Captcha_mainDisplay")]', timeout=3, name='captcha')
                     while captcha_shown:
                         try:
                             self.element_handler.try_solve_captcha(
                                 xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
-                            captcha_shown = False
                             verify_button.click()
+                            time.sleep(2)
+                            captcha_shown = self.element_handler.wait_for_element(
+                                locator='//div[contains(@class, "Captcha_mainDisplay")]', timeout=3, name='captcha')
                         except BaseException:
                             print('unknown error')
-
                     self.root_name = temp_root_name
                     root_name = temp_root_name
                     is_created_user_data = self.file_handler.create_aws_user_info(root_password=temp_root_name)
@@ -154,7 +156,7 @@ class AwsRegistrator:
 
     def root_confirm(self):
         root_name = generate_root_name()
-        time.sleep(2)
+        # time.sleep(2)
         root_field1 = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-3"]')
         root_field1.clear()
         self.element_handler.slow_input(root_field1, sequence=root_name)

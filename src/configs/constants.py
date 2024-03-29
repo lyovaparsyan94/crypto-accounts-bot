@@ -8,6 +8,7 @@ load_dotenv()
 CVV = os.getenv('CVV')
 EXPIRE_DATE = os.getenv('EXPIRE_DATE')
 CARD_NUMBER = os.getenv('CARD_NUMBER')
+CARDHOLDER = os.getenv('CARDHOLDER')
 
 CAPTCHA_API_KEY = os.getenv('CAPTCHA_API_KEY')
 SIM_API_TOKEN = os.getenv('SIM_API_TOKEN')

@@ -9,7 +9,7 @@ from faker import Faker
 
 def generate_root_name():
     password = ''
-    size = 25
+    size = 285
 
     for i in range(size):
         if i % 2 == 0:
