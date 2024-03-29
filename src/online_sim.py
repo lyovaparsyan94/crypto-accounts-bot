@@ -78,6 +78,3 @@ class OnlineSimHandler:
                 sleep(interval)
                 print(f"Verify code not found, retrying {15 - retry}")
         return sms_code
-
-sim = OnlineSimHandler()
-sim.get_aws_code()

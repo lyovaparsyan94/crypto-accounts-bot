@@ -115,6 +115,3 @@ class FileHandler:
         """
         with open(f"{PATH_TO_SAVE}", 'w') as file:
             json.dump(data, file, indent=2)
-
-
-a = FileHandler()

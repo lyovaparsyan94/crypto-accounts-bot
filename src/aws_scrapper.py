@@ -11,6 +11,7 @@ from helpers.temp_mail import check_last_message, generate_mail
 from helpers.phone_identifier import get_country_code, get_national_number
 from selenium.common import NoSuchElementException
 from online_sim import OnlineSimHandler
+from .async_simhandler import AsyncOnlimeSimHandler
 
 
 class AwsRegistrator:
@@ -30,8 +31,9 @@ class AwsRegistrator:
         self.verify_email_code = None
         self.account_name = email[0:-4].capitalize()
         # self.phone = "+37477970340"
-        self.sim_handler = OnlineSimHandler()
-        self.phone = self.sim_handler.phone
+        # self.sim_handler = OnlineSimHandler()
+        self.sim_handler = AsyncOnlimeSimHandler()
+        self.phone = None
         self.first_name, self.last_name = generate_first_last_name()
         self.full_name = f"{self.first_name} {self.last_name}"
         self.cardholder = generate_cardholder_name()
@@ -165,6 +167,8 @@ class AwsRegistrator:
         while not self.element_handler.is_element_present('//*[@id="awsui-radio-button-2"]'):
             time.sleep(1)
         else:
+            self.sim_handler.can_receive = True
+            self.phone = self.sim_handler.receive_number()
             personal = self.driver.find_element(By.XPATH, '//*[@id="awsui-radio-button-2"]')
             personal.click()
             time.sleep(1)
@@ -291,6 +295,7 @@ class AwsRegistrator:
                                                                 timeout=20)
         sms_input_field.clear()
 
+        # sms_code = self.sim_handler.get_aws_code()
         sms_code = self.sim_handler.get_aws_code()
         self.element_handler.slow_input(sms_input_field, sms_code)
 

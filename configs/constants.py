@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 CAPTCHA_API_KEY = '81d0c80606eb7773b4dbc170fa309a61'
+ONLINE_COUNTRY_CODE = '1'
+ONLINE_SIM_SERVICE = 'Amazon'
 
 USER_DATA_DIR = os.getenv('USER_DATA_DIR')
 

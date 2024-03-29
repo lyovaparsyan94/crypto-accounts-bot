@@ -64,6 +64,3 @@ def generate_random_addresses():
         "full_address": f"{address},  USA"
     }
     return fake_info
-
-
-generate_root_name()
