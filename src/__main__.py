@@ -1,6 +1,12 @@
-from aws_scrapper  import AwsRegistrator
+
+from aws_scrapper import AwsRegistrator
 from helpers.temp_mail import generate_mail
 
-if __name__ == '__main__':
+
+def main():
     aws = AwsRegistrator(email=generate_mail())
     aws.register()
+
+
+if __name__ == '__main__':
+    main()

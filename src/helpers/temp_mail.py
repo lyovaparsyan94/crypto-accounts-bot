@@ -1,7 +1,5 @@
 import re
-import time
 from time import sleep
-from typing import Union
 
 from tempmail import EMail
 
@@ -19,7 +17,7 @@ def generate_mail() -> str:
     return email
 
 
-def check_last_message(email: str, retry: int = 5, interval: int = 5) -> Union[bool, str]:
+def check_last_message(email: str, retry: int = 5, interval: int = 5) -> bool | str:
     """
     Retrieves the last verification code from the email inbox.
     Returns:

@@ -1,10 +1,18 @@
 import os
 from os.path import join
+
 from dotenv import load_dotenv
 
 load_dotenv()
-CAPTCHA_API_KEY = '81d0c80606eb7773b4dbc170fa309a61'
-ONLINE_COUNTRY_CODE = '1'
+
+CVV = os.getenv('CVV')
+EXPIRE_DATE = os.getenv('EXPIRE_DATE')
+CARD_NUMBER = os.getenv('CARD_NUMBER')
+
+CAPTCHA_API_KEY = os.getenv('CAPTCHA_API_KEY')
+SIM_API_TOKEN = os.getenv('SIM_API_TOKEN')
+
+ONLINE_COUNTRY_CODE = '46'
 ONLINE_SIM_SERVICE = 'Amazon'
 
 USER_DATA_DIR = os.getenv('USER_DATA_DIR')
@@ -14,6 +22,7 @@ BASE_DIR = os.path.dirname(file_path)
 ROOT_DIR = os.path.dirname(BASE_DIR)
 DATA_DIR = join(ROOT_DIR, join('data'))
 LOGS_DIR = join(ROOT_DIR, join('logs'))
+print(BASE_DIR)
 
 URL = "https://portal.aws.amazon.com/billing/signup#/identityverification"
 AWS_FILENAME = "aws_data.json"

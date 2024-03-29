@@ -3,11 +3,11 @@ import json
 from configs.constants import (
     AWS_FILENAME,
     CARD_LIMIT,
-    DATA_DIR,
     EMAIL_LIMIT,
     MANDATORY_FIELDS,
+    PATH_TO_SAVE,
     PHONE_LIMIT,
-    REQUIRED_FIELDS, PATH_TO_SAVE,
+    REQUIRED_FIELDS,
 )
 
 

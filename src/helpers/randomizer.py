@@ -1,10 +1,9 @@
 import random
 import string
-import time
 from random import choice
+
 import names
 from credit_card_info_generator import generate_credit_card
-from random_address import real_random_address
 from faker import Faker
 
 

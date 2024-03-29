@@ -1,7 +1,8 @@
-import requests
-from pprint import pprint
 import re
+from pprint import pprint
 from time import sleep
+
+import requests
 
 
 class OnlineSimHandler:
@@ -78,3 +79,4 @@ class OnlineSimHandler:
                 sleep(interval)
                 print(f"Verify code not found, retrying {15 - retry}")
         return sms_code
+

@@ -1,17 +1,17 @@
 import time
-from configs.constants import URL
-from imap_handler import ImapHandler
+
 import undetected_chromedriver as uc
-from selenium.webdriver.common.by import By
-from helpers.file_handler import FileHandler
-from helpers.randomizer import generate_root_name, generate_first_last_name, generate_cardholder_name, \
-    generate_card_data as card_data, generate_random_addresses as addresses
+from async_simhandler import AsyncOnlimeSimHandler
+from configs.constants import CARD_NUMBER, CVV, EXPIRE_DATE, URL
 from helpers.element_handler import ElementHandler
-from helpers.temp_mail import check_last_message, generate_mail
+from helpers.file_handler import FileHandler
 from helpers.phone_identifier import get_country_code, get_national_number
+from helpers.randomizer import generate_cardholder_name, generate_first_last_name, generate_root_name
+from helpers.randomizer import generate_random_addresses as addresses
+from helpers.temp_mail import check_last_message, generate_mail
+from imap_handler import ImapHandler
 from selenium.common import NoSuchElementException
-from online_sim import OnlineSimHandler
-from .async_simhandler import AsyncOnlimeSimHandler
+from selenium.webdriver.common.by import By
 
 
 class AwsRegistrator:
@@ -37,8 +37,8 @@ class AwsRegistrator:
         self.first_name, self.last_name = generate_first_last_name()
         self.full_name = f"{self.first_name} {self.last_name}"
         self.cardholder = generate_cardholder_name()
-        self.card, self.cvv, self.valid_date = card_data()['card_number'], card_data()['cvv'], card_data()[
-            'expiry_date']
+        # self.card, self.cvv, self.valid_date = card_data()['card_number'], card_data()['cvv'], card_data()['expiry_date']
+        self.card, self.cvv, self.valid_date = CARD_NUMBER, CVV, EXPIRE_DATE
         self.address, self.city, self.state, self.postal_code, self.country, self.full_address = addresses().values()
         self.url = URL
         if password:
@@ -168,7 +168,7 @@ class AwsRegistrator:
             time.sleep(1)
         else:
             self.sim_handler.can_receive = True
-            self.phone = self.sim_handler.receive_number()
+            self.phone = self.sim_handler.order_number()
             personal = self.driver.find_element(By.XPATH, '//*[@id="awsui-radio-button-2"]')
             personal.click()
             time.sleep(1)
@@ -274,8 +274,7 @@ class AwsRegistrator:
         warning2 = True
         while (retry >= 1 and warning1) or (retry >= 1 and warning2):
             try:
-                self.element_handler.try_solve_captcha(
-                    xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
+                self.element_handler.try_solve_captcha(xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
                 verify = self.driver.find_element(By.XPATH, "//button[span[text()='Send SMS (step 4 of 5)']]")
                 verify.click()
             except BaseException:
@@ -291,12 +290,13 @@ class AwsRegistrator:
                     name='captcha2')
 
     def step_eight(self):
-        sms_input_field = self.element_handler.wait_for_element(locator='//div//input[@name="smsPin"]', name='sms field',
+        sms_input_field = self.element_handler.wait_for_element(locator='//div//input[@name="smsPin"]',
+                                                                name='sms field',
                                                                 timeout=20)
         sms_input_field.clear()
 
         # sms_code = self.sim_handler.get_aws_code()
-        sms_code = self.sim_handler.get_aws_code()
+        sms_code = self.sim_handler.wait_order_info()['sms']
         self.element_handler.slow_input(sms_input_field, sms_code)
 
         verify_sms_button = self.driver.find_element(By.XPATH, '//button[contains(span, "Continue (step 4 of 5)")]')

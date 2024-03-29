@@ -1,11 +1,11 @@
 from time import sleep
-from random import choice
 from traceback import print_stack
+
+from helpers.recaptcha_solver import CaptchaSolver
+from selenium.common import ElementNotSelectableException, ElementNotVisibleException, NoSuchElementException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common import NoSuchElementException, ElementNotVisibleException, ElementNotSelectableException
-from .recaptcha_solver import CaptchaSolver
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 class ElementHandler:
@@ -62,7 +62,7 @@ class ElementHandler:
         for symbol in sequence:
             field_to_fill.send_keys(symbol)
             # sleep(choice([0.70, 0.91, 0.83, 0.55, 0.41, 0.63, 0.15, 0.21, 0.33]))
-            # sleep(0.35)
+            sleep(0.35)
 
     def try_solve_captcha(self, xpath, retry=5, interval=3):
         print('trying to solve captcha')
@@ -71,17 +71,14 @@ class ElementHandler:
         while (retry >= 1 and warning1) or (retry >= 1 and warning2):
             try:
                 self.captcha_resolve(xpath=xpath)
-                return True
+                # return True
             except BaseException:
                 retry -= 1
                 sleep(interval)
             finally:
-                warning1 = self.wait_for_element(timeout=4,
-                                                 locator="//a[@href='https://aws.amazon.com/support/createCase']",
-                                                 name='captcha1')
-                warning2 = self.wait_for_element(timeout=4,
-                                                 locator="//form[@id='IdentityVerification']//div[contains(text(), 'Security check characters are incorrect. Please try again.')]",
-                                                 name='captcha2')
+                warning1 = self.driver.find_element(By.XPATH, "//a[@href='https://aws.amazon.com/support/createCase']")
+                warning2 = self.driver.find_element(By.XPATH,
+                                                    "//form[@id='IdentityVerification']//div[contains(text(), 'Security check characters are incorrect. Please try again.')]", )
                 if not warning1 and not warning2:
                     return True
 

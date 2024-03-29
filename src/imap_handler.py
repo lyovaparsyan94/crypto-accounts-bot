@@ -1,7 +1,8 @@
-import re
 import imaplib
+import re
 from pprint import pprint
-from imap_tools import MailBox, A
+
+from imap_tools import A, MailBox
 
 
 class ImapHandler:
