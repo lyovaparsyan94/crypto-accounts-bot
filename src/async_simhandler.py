@@ -30,7 +30,7 @@ class AsyncOnlimeSimHandler:
                             'service_name': ONLINE_SIM_SERVICE}
 
     async def receive_number(self):
-        received_number = await self.order_number()
+        received_number = self.order_number()
         if received_number:
             print(f'received_number is : {received_number}')
 

@@ -16,13 +16,12 @@ class ElementHandler:
     def wait_for_element(self, locator, by_type='xpath', timeout=30, poll_frequency=0.5, name=''):
         element = None
         try:
-            # self.driver.implicitly_wait(10)
+            self.driver.implicitly_wait(5)
             wait = WebDriverWait(self.driver, timeout=timeout, poll_frequency=poll_frequency, ignored_exceptions=[
                 NoSuchElementException,
                 ElementNotVisibleException,
                 ElementNotSelectableException])
             element = wait.until(EC.visibility_of_element_located((by_type, locator)))
-            print(f"Element {name} appeared")
         except:
             print(f"Element {name} NOT appeared ")
             print_stack()
@@ -33,7 +32,6 @@ class ElementHandler:
         try:
             element = self.driver.find_element(by_type, locator)
             if element is not None:
-                print(f'Element {name} found')
                 return True
             else:
                 return False
@@ -62,7 +60,7 @@ class ElementHandler:
         for symbol in sequence:
             field_to_fill.send_keys(symbol)
             # sleep(choice([0.70, 0.91, 0.83, 0.55, 0.41, 0.63, 0.15, 0.21, 0.33]))
-            # sleep(0.35)
+            sleep(0.15)
 
     def try_solve_captcha(self, xpath, retry=5, interval=3):
         print('trying to solve captcha')
@@ -71,16 +69,12 @@ class ElementHandler:
         while (retry >= 1 and warning1) or (retry >= 1 and warning2):
             try:
                 self.captcha_resolve(xpath=xpath)
-                # return True
             except BaseException:
                 retry -= 1
                 sleep(interval)
             finally:
-                warning1 = self.driver.find_element(By.XPATH, "//a[@href='https://aws.amazon.com/support/createCase']")
-                warning2 = self.driver.find_element(By.XPATH,
-                                                    "//form[@id='IdentityVerification']//div[contains(text(), 'Security check characters are incorrect. Please try again.')]", )
-                if not warning1 and not warning2:
-                    return True
+                warning1 = self.wait_for_element(locator="//a[@href='https://aws.amazon.com/support/createCase']", timeout=2)
+                warning2 = self.wait_for_element(locator="//form[@id='IdentityVerification']//div[contains(text(), 'Security check characters are incorrect. Please try again.')]", timeout=2)
 
     def captcha_resolve(self, xpath):
         image = self.driver.find_element(By.XPATH, xpath)
