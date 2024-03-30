@@ -1,17 +1,16 @@
 import time
-import undetected_chromedriver as uc
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 
+import undetected_chromedriver as uc
 from async_simhandler import AsyncOnlimeSimHandler
-from configs.constants import CARD_NUMBER, CVV, EXPIRE_DATE, URL, CARDHOLDER
+from configs.constants import CARD_NUMBER, CARDHOLDER, CVV, EXPIRE_DATE, URL
 from helpers.element_handler import ElementHandler
 from helpers.file_handler import FileHandler
 from helpers.phone_identifier import get_country_code, get_national_number
-from helpers.randomizer import generate_cardholder_name, generate_first_last_name, generate_root_name
+from helpers.randomizer import generate_first_last_name, generate_root_name
 from helpers.randomizer import generate_random_addresses as addresses
 from helpers.temp_mail import check_last_message, generate_mail
 from imap_handler import ImapHandler
+from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 
@@ -129,9 +128,6 @@ class AwsRegistrator:
     def step_three(self, retry=15, interval=4):
         root_name = False
         warning_shown = True
-        # verify_button = self.element_handler.wait_for_element(
-        #     locator="//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]", timeout=3,
-        #     name='verify_button')
         verify_button = self.driver.find_element(By.XPATH,
                                                  "//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]")
         while not self.root_name and warning_shown:
@@ -166,7 +162,6 @@ class AwsRegistrator:
 
     def root_confirm(self):
         root_name = generate_root_name()
-        # time.sleep(2)
         root_field1 = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-3"]')
         root_field1.clear()
         self.element_handler.slow_input(root_field1, sequence=root_name)
@@ -179,16 +174,15 @@ class AwsRegistrator:
         while not self.element_handler.is_element_present('//*[@id="awsui-radio-button-2"]'):
             time.sleep(1)
         else:
-            self.sim_handler.can_receive = True
-            self.phone = self.sim_handler.order_number()
             personal = self.driver.find_element(By.XPATH, '//*[@id="awsui-radio-button-2"]')
             personal.click()
             time.sleep(1)
 
             full_name_field = self.driver.find_element(By.XPATH, "//div//input[@name='address.fullName']")
             self.element_handler.slow_input(full_name_field, self.full_name)
-            time.sleep(1)
 
+            self.sim_handler.can_receive = True
+            self.phone = self.sim_handler.order_number()
             region = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-1"]')
             region.click()
             time.sleep(1)
@@ -206,30 +200,29 @@ class AwsRegistrator:
             found_county = self.driver.find_element(By.XPATH,
                                                     f"//div[contains(@data-value, '{get_country_code(self.phone)}') and contains(@class, 'awsui-select-option-selectable')]")
             found_county.click()
-            time.sleep(1)
-            address_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-9"]')
+            address_field = self.driver.find_element(By.XPATH, '//input[@name="address.addressLine1"]')
             self.element_handler.slow_input(address_field, self.full_address)
             time.sleep(1)
 
-            city = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-11"]')
+            city = self.driver.find_element(By.XPATH, '//input[@name="address.city"]')
             self.element_handler.slow_input(city, self.city)
             time.sleep(1)
 
-            state_region_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-12"]')
+            state_region_field = self.driver.find_element(By.XPATH, '//input[@name="address.state"]')
             self.element_handler.slow_input(state_region_field, self.state)
             time.sleep(1)
 
-            postal_code = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-13"]')
+            postal_code = self.driver.find_element(By.XPATH, '//input[@name="address.postalCode"]')
             self.element_handler.slow_input(postal_code, self.postal_code)
             time.sleep(1)
 
-            agree_checkbox = self.driver.find_element(By.XPATH, '//*[@id="awsui-checkbox-0"]')
+            agree_checkbox = self.driver.find_element(By.XPATH, '//input[@name="agreement"]')
             agree_checkbox.click()
 
             continue_button = self.driver.find_element(By.XPATH,
                                                        '//*[@id="ContactInformation"]/fieldset/awsui-button/button')
-            time.sleep(1)
             continue_button.click()
+            time.sleep(2)
             self.update_aws_multiple_fields(root_password=self.root_name,
                                             fields=['first_name', 'last_name', 'phone', 'email',
                                                     'account_name',
@@ -238,47 +231,54 @@ class AwsRegistrator:
                                                     'postal_code', 'full_address'])
 
     def step_five(self):
-        card_number_field = self.element_handler.wait_for_element(locator='//*[@id="awsui-input-14"]',
+        card_number_field = self.element_handler.wait_for_element(locator='//input[@name="cardNumber"]',
                                                                   name='card_field', timeout=3)
-        self.element_handler.slow_input(card_number_field, self.card)
+        while not card_number_field:
+            time.sleep(0.5)
+        else:
+            self.element_handler.slow_input(card_number_field, self.card)
 
-        mouth_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-3"]')
-        mouth_field.click()
-        mouth = self.driver.find_element(By.XPATH, f"//div[@data-value='{self.valid_date[:2]}']")
-        mouth.click()
-        time.sleep(2)
+            mouth_field = self.driver.find_element(By.XPATH, '//div[@placeholder="Month"]')
+            mouth_field.click()
+            mouth = self.driver.find_element(By.XPATH, f"//div[@data-value='{self.valid_date[:2]}']")
+            mouth.click()
+            time.sleep(2)
 
-        year_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-4"]')
-        year_field.click()
-        mouth = self.driver.find_element(By.XPATH, f"//div[@data-value='{self.valid_date[3:]}']")
-        mouth.click()
+            year_field = self.driver.find_element(By.XPATH, '//div[@placeholder="Year"]')
+            year_field.click()
+            mouth = self.driver.find_element(By.XPATH, f"//div[@data-value='{self.valid_date[3:]}']")
+            mouth.click()
+            time.sleep(1)
 
-        cvv_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-15"]')
-        self.element_handler.slow_input(cvv_field, self.cvv)
+            cvv_field = self.driver.find_element(By.XPATH, '//input[@placeholder="CVV/CVC"]')
+            self.element_handler.slow_input(cvv_field, self.cvv)
+            time.sleep(1)
 
-        cardholder_field = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-16"]')
-        self.element_handler.slow_input(cardholder_field, self.cardholder)
+            cardholder_field = self.driver.find_element(By.XPATH, '//input[@name="accountHolderName"]')
+            self.element_handler.slow_input(cardholder_field, self.cardholder)
 
-        verify_step = self.driver.find_element(By.XPATH, '//*[@id="PaymentInformation"]/fieldset/awsui-button/button')
-        verify_step.click()
+            verify_step = self.driver.find_element(By.XPATH, '//*[@id="PaymentInformation"]/fieldset/awsui-button/button')
+            verify_step.click()
 
-        self.update_aws_multiple_fields(root_password=self.root_name,
-                                        fields=['card', 'valid_date', 'cvv', 'cardholder'])
+            self.update_aws_multiple_fields(root_password=self.root_name,
+                                            fields=['card', 'valid_date', 'cvv', 'cardholder'])
 
     def step_six(self):
         country_field = self.element_handler.wait_for_element(locator='//*[@id="awsui-select-5"]', timeout=10,
                                                               name='country_field')
-        country_field.click()
-
-        region = get_country_code(self.phone)
-        month = self.element_handler.wait_for_element(locator=f"//div[contains(@data-value, '{region}')]", timeout=10,
-                                                      name='month_field')
-        month.click()
-        national_number_field = self.element_handler.wait_for_element(locator='//*[@id="phoneNumber"]/div/input',
-                                                                      timeout=10, name='national_number_field')
-        national_number = get_national_number(self.phone)
-        print(f'national number: {national_number}')
-        self.element_handler.slow_input(national_number_field, national_number)
+        while not country_field:
+            time.sleep(0.5)
+        else:
+            country_field.click()
+            region = get_country_code(self.phone)
+            month = self.element_handler.wait_for_element(locator=f"//div[contains(@data-value, '{region}')]", timeout=10,
+                                                          name='month_field')
+            month.click()
+            national_number_field = self.element_handler.wait_for_element(locator='//*[@id="phoneNumber"]/div/input',
+                                                                          timeout=10, name='national_number_field')
+            national_number = get_national_number(self.phone)
+            print(f'national number: {national_number}')
+            self.element_handler.slow_input(national_number_field, national_number)
 
     def step_seven(self):
         self.element_handler.try_solve_captcha(
@@ -287,20 +287,23 @@ class AwsRegistrator:
         verify.click()
 
     def step_eight(self):
+        sms_code = self.sim_handler.wait_order_info()['sms']
         sms_input_field = self.element_handler.wait_for_element(locator='//div//input[@name="smsPin"]',
                                                                 name='sms field',
                                                                 timeout=10)
-        sms_input_field.clear()
-        sms_code = self.sim_handler.wait_order_info()['sms']
-        self.element_handler.slow_input(sms_input_field, sms_code)
+        while not sms_input_field:
+            time.sleep(0.5)
+        else:
+            sms_input_field.clear()
+            self.element_handler.slow_input(sms_input_field, sms_code)
 
-        verify_sms_button = self.driver.find_element(By.XPATH, '//button[contains(span, "Continue (step 4 of 5)")]')
-        verify_sms_button.click()
-        self.file_handler.update_aws_user_info(root_password=self.root_name, field='phone', value=self.phone)
-        time.sleep(5)
-        finish_button = self.driver.find_element(By.XPATH, '//*[@id="SupportPlan"]/fieldset/div[2]/awsui-button/button')
-        time.sleep(2)
-        finish_button.click()
+            verify_sms_button = self.driver.find_element(By.XPATH, '//button[contains(span, "Continue (step 4 of 5)")]')
+            verify_sms_button.click()
+            self.file_handler.update_aws_user_info(root_password=self.root_name, field='phone', value=self.phone)
+            time.sleep(5)
+            finish_button = self.driver.find_element(By.XPATH, '//*[@id="SupportPlan"]/fieldset/div[2]/awsui-button/button')
+            time.sleep(2)
+            finish_button.click()
 
     def update_aws_multiple_fields(self, root_password: str, fields: list) -> None:
         for field in fields:

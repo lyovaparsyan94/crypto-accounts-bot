@@ -1,8 +1,8 @@
 import imaplib
-import time
-from pprint import pprint
-from imap_tools import A, MailBox
 import re
+from pprint import pprint
+
+from imap_tools import A, MailBox
 
 
 class ImapHandler:
@@ -58,9 +58,3 @@ class ImapHandler:
         else:
             print("No link found in the text.")
         return urls[0] if urls else None
-
-
-# imaphandler = ImapHandler("Marcoimcepti@gmx.net", "k7uoGItNCs")
-# imaphandler = ImapHandler("Osandra408O@web.de", "zx01hodQL")
-# print(imaphandler.mailbox_confirm_message())
-# imaphandler.extract_link_from_text(imaphandler.text_pattern) #174957

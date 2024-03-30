@@ -1,5 +1,4 @@
 from time import sleep
-from traceback import print_stack
 
 from helpers.recaptcha_solver import CaptchaSolver
 from selenium.common import ElementNotSelectableException, ElementNotVisibleException, NoSuchElementException
@@ -16,7 +15,6 @@ class ElementHandler:
     def wait_for_element(self, locator, by_type='xpath', timeout=30, poll_frequency=0.5, name=''):
         element = None
         try:
-            self.driver.implicitly_wait(5)
             wait = WebDriverWait(self.driver, timeout=timeout, poll_frequency=poll_frequency, ignored_exceptions=[
                 NoSuchElementException,
                 ElementNotVisibleException,
@@ -24,7 +22,6 @@ class ElementHandler:
             element = wait.until(EC.visibility_of_element_located((by_type, locator)))
         except:
             print(f"Element {name} NOT appeared ")
-            print_stack()
             self.driver.implicitly_wait(2)
         return element
 
@@ -40,7 +37,6 @@ class ElementHandler:
             return False
         except Exception:
             print(f"Unknown Error {name}")
-            print(print_stack())
             return False
 
     def is_shown_warning(self, warning_xpath: str = '', name: str = None) -> bool:

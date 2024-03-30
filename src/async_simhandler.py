@@ -40,7 +40,9 @@ class AsyncOnlimeSimHandler:
             if order:
                 received_number = order.number
                 self.operation_id = order.operation_id
+                print(f"operation_id: {self.operation_id}")
                 self.received_phone_number = received_number
+                print(f"received_phone_number: {self.received_phone_number}")
                 self.can_receive = False
                 return received_number
 
@@ -54,13 +56,11 @@ class AsyncOnlimeSimHandler:
                         if order.message:
                             info = {'phone': order.number, 'country': order.country, 'service': order.service,
                                     'sms': order.message, 'operation_id': order.operation_id}
-                            print(order.number)
+                            print(info)
                             return info
                     await asyncio.sleep(60)  # Wait for 1 minute
             except TimeoutError:
                 print("Timed out waiting for SMS.")
-            finally:
-                return None  # Return None if no SMS received within the timeout
 
     async def __finish_order(self, operation_id: int = None) -> None:
         async with OnlineSMS(api_key=self.__api_token) as client:
@@ -76,15 +76,12 @@ class AsyncOnlimeSimHandler:
         return ordered_number
 
     def wait_order_info(self):
-        info = asyncio.run(self.__wait_order_info(self.operation_id))
-        print(f'waited for order_info: {info}')
-        return info
+        result = asyncio.run(self.__wait_order_info(self.operation_id))
+        return result
+
+    def test_wait_order_info(self, op_id):
+        result = asyncio.run(self.__wait_order_info(op_id))
+        return result
 
     def finish_order(self, operation_id):
         asyncio.run(self.__finish_order(operation_id))
-
-
-# simhandler = AsyncOnlimeSimHandler()
-# simhandler.wait_order_info()
-# simhandler.order_number()
-# asyncio.run(simhandler.get_service_info())
