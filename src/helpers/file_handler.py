@@ -9,7 +9,7 @@ from configs.constants import (
     PHONE_LIMIT,
     REQUIRED_FIELDS,
 )
-from helpers.custom_exceptions import EmailUsageLimitExceeded, CardUsageLimitExceeded
+from helpers.custom_exceptions import CardUsageLimitExceeded, EmailUsageLimitExceeded
 
 
 class FileHandler:

@@ -10,7 +10,6 @@ from helpers.randomizer import generate_first_last_name, generate_root_name
 from helpers.randomizer import generate_random_addresses as addresses
 from helpers.temp_mail import check_last_message, generate_mail
 from imap_handler import ImapHandler
-from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 

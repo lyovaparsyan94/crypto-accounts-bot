@@ -1,4 +1,4 @@
-from configs.constants import EMAIL_LIMIT, CARD_LIMIT
+from configs.constants import CARD_LIMIT, EMAIL_LIMIT
 
 
 class EmailUsageLimitExceeded(Exception):
@@ -7,7 +7,6 @@ class EmailUsageLimitExceeded(Exception):
 
     Attributes:
         email (str): The email address that exceeded the usage limit.
-        limit (int): The maximum allowed usage limit (default is 9).
         message (str): The error message.
     """
 
@@ -30,8 +29,7 @@ class CardUsageLimitExceeded(Exception):
     Custom exception raised when an card usage limit is exceeded.
 
     Attributes:
-        email (str): The email address that exceeded the usage limit.
-        limit (int): The maximum allowed usage limit (default is 9).
+        card (str): The card address that exceeded the usage limit.
         message (str): The error message.
     """
 

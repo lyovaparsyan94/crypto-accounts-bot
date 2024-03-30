@@ -1,7 +1,7 @@
 import imaplib
-import logging
 import re
 from pprint import pprint
+
 from imap_tools import A, MailBox
 
 
@@ -18,9 +18,6 @@ class ImapHandler:
                 If the account associated with this e-mail address is active, you can sign in using the following link:
                 https://console.aws.amazon.com/console/home
                 """
-        logger = logging.getLogger(__name__)
-        logging.basicConfig(filename='myapp.log', level=logging.INFO)
-        logger.info('Started')
 
     def get_confirm_message(self):
         imap = imaplib.IMAP4_SSL(self.host)
@@ -61,7 +58,3 @@ class ImapHandler:
         else:
             print("No link found in the text.")
         return urls[0] if urls else None
-
-
-# im = ImapHandler(user='parsyan.lyova@gmail.com', password='ybuf unxi cuji wqjl')
-# im.mailbox_confirm_message()

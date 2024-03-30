@@ -8,7 +8,7 @@ from pyonlinesim import OnlineSMS
 class AsyncOnlimeSimHandler:
     load_dotenv()
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.__api_token = SIM_API_TOKEN
         self.operation_id = None
         self.received_phone_number = None
