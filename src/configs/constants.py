@@ -27,7 +27,6 @@ print(BASE_DIR)
 
 URL = "https://portal.aws.amazon.com/billing/signup#/identityverification"
 AWS_FILENAME = "aws_data.json"
-TELS_ID = 'iso_code'
 PATH_TO_SAVE = os.path.join(DATA_DIR, AWS_FILENAME)
 
 PHONE_LIMIT = 9

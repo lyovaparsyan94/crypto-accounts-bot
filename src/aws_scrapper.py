@@ -15,34 +15,37 @@ from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 
-class AwsRegistrator:
-    def __init__(self, email=None, password=None):
-        self.options = uc.ChromeOptions()
+class BaseRegistrator:
+    def __init__(self):
         # self.options = Options()
-        self.file_handler = FileHandler()
-        self.user_created = False
         # self.options.add_argument("--proxy-server=159.203.61.169:3128")
         # self.options.add_argument(rf'--user-data-dir={USER_DATA_DIR}')
+        # self.driver = webdriver.Chrome()
+        self.options = uc.ChromeOptions()
         self.options.add_argument(r'--user-data-dir=C:\Users\parsy\AppData\Local\Google\Chrome\User Data\Profile')
-        self.driver = webdriver.Chrome()
         self.driver = uc.Chrome(options=self.options)
-        # self.driver = webdriver.Chrome(options=self.options)
-        self.element_handler = ElementHandler(driver=self.driver)
-        self.email = email
-        self.root_name = None
+
+
+class AwsRegistrator(BaseRegistrator):
+    def __init__(self, email=None, password=None):
+        self.card, self.email = CARD_NUMBER, email
+        self.file_handler = FileHandler()
+        self.validate_email = self.file_handler.validate_card_and_email(email=self.email, card=self.card)
+
+        super().__init__()
         self.password = password
-        self.verify_email_code = None
+        self.cvv, self.valid_date = CVV, EXPIRE_DATE
         self.account_name = email[0:-4].capitalize()
-        # self.phone = "+37477970340"
-        # self.sim_handler = OnlineSimHandler()
+        self.user_created = False
+        self.element_handler = ElementHandler(driver=self.driver)
         self.sim_handler = AsyncOnlimeSimHandler()
+        self.root_name = None
+        self.verify_email_code = None
         self.phone = None
         self.first_name, self.last_name = generate_first_last_name()
         self.full_name = f"{self.first_name} {self.last_name}"
-        # self.cardholder = generate_cardholder_name()
         self.cardholder = CARDHOLDER
         # self.card, self.cvv, self.valid_date = card_data()['card_number'], card_data()['cvv'], card_data()['expiry_date']
-        self.card, self.cvv, self.valid_date = CARD_NUMBER, CVV, EXPIRE_DATE
         self.address, self.city, self.state, self.postal_code, self.country, self.full_address = addresses().values()
         self.url = URL
         if password:
@@ -80,7 +83,6 @@ class AwsRegistrator:
             email = generate_mail()
             self.email = email
         time.sleep(1)
-        # acc_name = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-1"]')
         acc_name_field = self.element_handler.wait_for_element(locator="//div//input[@name='fullName']", timeout=6,
                                                                name='account field')
         while not self.element_handler.is_element_present(locator="//div//input[@name='fullName']"):
@@ -137,7 +139,6 @@ class AwsRegistrator:
             except BaseException:
                 time.sleep(interval)
                 retry -= 1
-                time.sleep(interval)
             finally:
                 # time.sleep(2)
                 warning_shown = self.element_handler.is_element_present(
@@ -257,7 +258,8 @@ class AwsRegistrator:
             cardholder_field = self.driver.find_element(By.XPATH, '//input[@name="accountHolderName"]')
             self.element_handler.slow_input(cardholder_field, self.cardholder)
 
-            verify_step = self.driver.find_element(By.XPATH, '//*[@id="PaymentInformation"]/fieldset/awsui-button/button')
+            verify_step = self.driver.find_element(By.XPATH,
+                                                   '//*[@id="PaymentInformation"]/fieldset/awsui-button/button')
             verify_step.click()
 
             self.update_aws_multiple_fields(root_password=self.root_name,
@@ -271,7 +273,8 @@ class AwsRegistrator:
         else:
             country_field.click()
             region = get_country_code(self.phone)
-            month = self.element_handler.wait_for_element(locator=f"//div[contains(@data-value, '{region}')]", timeout=10,
+            month = self.element_handler.wait_for_element(locator=f"//div[contains(@data-value, '{region}')]",
+                                                          timeout=10,
                                                           name='month_field')
             month.click()
             national_number_field = self.element_handler.wait_for_element(locator='//*[@id="phoneNumber"]/div/input',
@@ -301,7 +304,8 @@ class AwsRegistrator:
             verify_sms_button.click()
             self.file_handler.update_aws_user_info(root_password=self.root_name, field='phone', value=self.phone)
             time.sleep(5)
-            finish_button = self.driver.find_element(By.XPATH, '//*[@id="SupportPlan"]/fieldset/div[2]/awsui-button/button')
+            finish_button = self.driver.find_element(By.XPATH,
+                                                     '//*[@id="SupportPlan"]/fieldset/div[2]/awsui-button/button')
             time.sleep(2)
             finish_button.click()
 

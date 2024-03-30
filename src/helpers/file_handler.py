@@ -9,6 +9,7 @@ from configs.constants import (
     PHONE_LIMIT,
     REQUIRED_FIELDS,
 )
+from helpers.custom_exceptions import EmailUsageLimitExceeded, CardUsageLimitExceeded
 
 
 class FileHandler:
@@ -27,14 +28,14 @@ class FileHandler:
     def is_possible_to_use(self, value: str, field: str = 'cards') -> int | None:
         """checks if value of field not used more than set limit """
         limit = self.get_limit(value=value, field=field)
-        if limit or limit == 0:
-            if field == "cards":
-                return limit < CARD_LIMIT
-            elif field == "phones":
-                return limit < PHONE_LIMIT
-            elif field == "emails":
-                return limit < EMAIL_LIMIT
-        return None
+        if field == "cards":
+            return limit < CARD_LIMIT
+        elif field == "phones":
+            return limit < PHONE_LIMIT
+        elif field == "emails":
+            return limit < EMAIL_LIMIT
+        elif not limit or limit != 0:
+            return
 
     @staticmethod
     def get_current_data(filename: str = AWS_FILENAME) -> dict:
@@ -113,5 +114,23 @@ class FileHandler:
         Returns:
             None
         """
-        with open(f"{PATH_TO_SAVE}", 'w') as file:
+        with open(f"{filename}", 'w') as file:
             json.dump(data, file, indent=2)
+
+    def validate_email(self, email):
+        if email and not self.is_possible_to_use(field='emails', value=email):
+            raise EmailUsageLimitExceeded(email)
+        return True
+
+    def validate_card(self, card):
+        if card and not self.is_possible_to_use(field='cards', value=card):
+            raise CardUsageLimitExceeded(card)
+        return True
+
+    def validate_card_and_email(self, card, email):
+        self.validate_email(email)
+        self.validate_card(card)
+
+# a = FileHandler()
+# a.validate_card_and_email(email='asdad@gmail.com', card='4318290010100184')
+# a.validate_email(email='alex.smith@example.com')
