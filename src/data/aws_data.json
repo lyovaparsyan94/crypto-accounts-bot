@@ -1,0 +1,31 @@
+{
+  "users": [
+    {
+      "i@aJr#u!nJe+l+uNy=m!mDu@": {
+        "first_name": "Alan",
+        "last_name": "Gabriel",
+        "cardholder": "Alan Gabriel",
+        "phone": "+46729118199",
+        "full_name": "Alan Gabriel",
+        "email": "castgufbrinn133@gmx.com",
+        "root_pass": "i@aJr#+-!Je+l+uNy=m!mDu@",
+        "account_name": "Caseykmfbrinn133@gmx",
+        "verify_email_code": "028457",
+        "city": "Lake Charlotte",
+        "postal_code": "67196",
+        "country": "United States",
+        "full_address": "391 Evan Harbors Suite 271,  USA"
+      }
+    }
+  ],
+  "used_phones_count": {
+    "+442071234567": 1
+  },
+  "used_cards_count": {
+    "4569232290106": 1,
+    "4999859174278576": 1
+  },
+  "used_emails_count": {
+    "alex.smith@example.com": 1
+  }
+}
