@@ -1,7 +1,6 @@
 import imaplib
 import re
 from pprint import pprint
-
 from imap_tools import A, MailBox
 
 
@@ -12,12 +11,6 @@ class ImapHandler:
         self.imap_ssl_port = 993
         self.user = user
         self.password = password
-        self.text_pattern = """
-                We received a request to create a new AWS account using this e-mail address.
-                We could not complete your request because an AWS account is already associated with this e-mail address.
-                If the account associated with this e-mail address is active, you can sign in using the following link:
-                https://console.aws.amazon.com/console/home
-                """
 
     def get_confirm_message(self):
         imap = imaplib.IMAP4_SSL(self.host)
@@ -32,10 +25,9 @@ class ImapHandler:
         imap.logout()
 
     def mailbox_confirm_message(self):
-
         verify_codes = ['']
         with MailBox(self.host).login(self.user, self.password, 'INBOX') as mailbox:
-            for msg in mailbox.fetch(A(new=True)):
+            for msg in mailbox.fetch(A(all=True)):
                 sender = msg.from_
                 if sender in ['amazonaws', 'no-reply@amazonaws.com', 'no-reply@signup.aws']:
                     body = msg.text
@@ -44,9 +36,6 @@ class ImapHandler:
                         code = match.group()
                         print(f"Verification code: {code}")
                         verify_codes.append(code)
-                # if 'create a new AWS' in msg.text:
-                #     print(msg.date)
-                #     return self.extract_link_from_text(msg.text)
         print(f'all verify codes: {verify_codes}')
         return verify_codes[-1]
 

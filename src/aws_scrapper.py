@@ -1,8 +1,7 @@
+from config import configs
 import time
-
 import undetected_chromedriver as uc
-from async_simhandler import AsyncOnlimeSimHandler
-from configs.constants import CARD_NUMBER, CARDHOLDER, CVV, EXPIRE_DATE, URL
+from async_simhandler import AsyncOnlineSimHandler
 from helpers.element_handler import ElementHandler
 from helpers.file_handler import FileHandler
 from helpers.phone_identifier import get_country_code, get_national_number
@@ -21,39 +20,38 @@ class BaseRegistrator:
         # self.options.add_argument(rf'--user-data-dir={USER_DATA_DIR}')
         # self.driver = webdriver.Chrome()
         self.options = uc.ChromeOptions()
-        self.options.add_argument(r'--user-data-dir=C:\Users\parsy\AppData\Local\Google\Chrome\User Data\Profile')
         self.driver = uc.Chrome(options=self.options)
 
 
 class AwsRegistrator(BaseRegistrator):
     def __init__(self, email=None, password=None):
-        self.card, self.email = CARD_NUMBER, email
+        self.email = email
+        self.card = configs.private_configs.CARD_NUMBER
         self.file_handler = FileHandler()
-        self.validate_email = self.file_handler.validate_card_and_email(email=self.email, card=self.card)
-
+        self.validate_email = self.file_handler.validate_card_and_email(email=self.email,
+                                                                        card=self.card)  # TODO move to __main__ file
         super().__init__()
         self.password = password
-        self.cvv, self.valid_date = CVV, EXPIRE_DATE
+        self.cvv, self.valid_date = configs.private_configs.CVV, configs.private_configs.EXPIRE_DATE
         self.account_name = email[0:-4].capitalize()
         self.user_created = False
         self.element_handler = ElementHandler(driver=self.driver)
-        self.sim_handler = AsyncOnlimeSimHandler()
+        self.sim_handler = AsyncOnlineSimHandler()
         self.root_name = None
         self.verify_email_code = None
         self.phone = None
         self.first_name, self.last_name = generate_first_last_name()
         self.full_name = f"{self.first_name} {self.last_name}"
-        self.cardholder = CARDHOLDER
+        self.cardholder = configs.private_configs.CARDHOLDER
         # self.card, self.cvv, self.valid_date = card_data()['card_number'], card_data()['cvv'], card_data()['expiry_date']
         self.address, self.city, self.state, self.postal_code, self.country, self.full_address = addresses().values()
-        self.url = URL
+        self.url = configs.aws_configs.URL
         if password:
             self.imap_instance = ImapHandler(self.email, self.password)
 
     def open_page(self):
         self.driver.maximize_window()
         self.driver.get(self.url)
-        self.driver.implicitly_wait(5)
 
     def step_one(self, email=None, retry=5, interval=5):
         warning_email = True
@@ -71,23 +69,17 @@ class AwsRegistrator(BaseRegistrator):
 
     def email_confirm(self, email=None):
         root_email_field = self.element_handler.wait_for_element(locator="//div//input[@name='emailAddress']",
-                                                                 timeout=10, name='root email field')
-        while not root_email_field:
-            time.sleep(1)
-        else:
-            root_email_field.clear()
+                                                                 timeout=5, name='root email field')
+        root_email_field.clear()
         if email is None:
             self.element_handler.slow_input(root_email_field, self.email)
         else:
             email = generate_mail()
             self.email = email
-        time.sleep(1)
+        # time.sleep(1)
         acc_name_field = self.element_handler.wait_for_element(locator="//div//input[@name='fullName']", timeout=6,
                                                                name='account field')
-        while not self.element_handler.is_element_present(locator="//div//input[@name='fullName']"):
-            time.sleep(1)
-        else:
-            acc_name_field.clear()
+        acc_name_field.clear()
         self.account_name = self.email[0:-4].capitalize()
         self.element_handler.slow_input(acc_name_field, self.account_name)
         verify_email = self.driver.find_element(By.XPATH,
@@ -131,7 +123,7 @@ class AwsRegistrator(BaseRegistrator):
         warning_shown = True
         verify_button = self.driver.find_element(By.XPATH,
                                                  "//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]")
-        while not self.root_name and warning_shown:
+        while not root_name and warning_shown:
             try:
                 temp_root_name = self.root_confirm()
                 verify_button.click()
@@ -143,18 +135,10 @@ class AwsRegistrator(BaseRegistrator):
                 warning_shown = self.element_handler.is_element_present(
                     locator="//a[@href='https://support.aws.amazon.com/#/contacts/aws-account-support']")
                 if not warning_shown and temp_root_name:
-                    captcha_shown = self.element_handler.is_shown_warning(
-                        warning_xpath='//div[contains(@class, "Captcha_mainDisplay")]', name='captcha')
-                    while captcha_shown:
-                        try:
-                            self.element_handler.try_solve_captcha(
-                                xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
-                            verify_button.click()
-                            time.sleep(2)
-                            captcha_shown = self.element_handler.wait_for_element(
-                                locator='//div[contains(@class, "Captcha_mainDisplay")]', timeout=3, name='captcha')
-                        except BaseException:
-                            print('unknown error')
+                    self.element_handler.try_solve_captcha(
+                        xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
+                    verify_button.click()
+                    time.sleep(2)
                     self.root_name = temp_root_name
                     root_name = temp_root_name
                     is_created_user_data = self.file_handler.create_aws_user_info(root_password=temp_root_name)
@@ -181,7 +165,6 @@ class AwsRegistrator(BaseRegistrator):
             full_name_field = self.driver.find_element(By.XPATH, "//div//input[@name='address.fullName']")
             self.element_handler.slow_input(full_name_field, self.full_name)
 
-            self.sim_handler.can_receive = True
             self.phone = self.sim_handler.order_number()
             region = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-1"]')
             region.click()
@@ -242,17 +225,17 @@ class AwsRegistrator(BaseRegistrator):
             mouth_field.click()
             mouth = self.driver.find_element(By.XPATH, f"//div[@data-value='{self.valid_date[:2]}']")
             mouth.click()
-            time.sleep(2)
+            # time.sleep(2)
 
             year_field = self.driver.find_element(By.XPATH, '//div[@placeholder="Year"]')
             year_field.click()
             mouth = self.driver.find_element(By.XPATH, f"//div[@data-value='{self.valid_date[3:]}']")
             mouth.click()
-            time.sleep(1)
+            # time.sleep(1)
 
             cvv_field = self.driver.find_element(By.XPATH, '//input[@placeholder="CVV/CVC"]')
             self.element_handler.slow_input(cvv_field, self.cvv)
-            time.sleep(1)
+            # time.sleep(1)
 
             cardholder_field = self.driver.find_element(By.XPATH, '//input[@name="accountHolderName"]')
             self.element_handler.slow_input(cardholder_field, self.cardholder)
@@ -310,27 +293,23 @@ class AwsRegistrator(BaseRegistrator):
 
     def update_aws_multiple_fields(self, root_password: str, fields: list) -> None:
         for field in fields:
-            value = getattr(self, field)  # Get the value of the attribute dynamically
+            value = getattr(self, field)
             self.file_handler.update_aws_user_info(root_password=root_password, field=field, value=value)
 
     def another_form(self, imap_data):
         self.driver.get(imap_data)
-        time.sleep(3)
         fill_mail_field = self.driver.find_element(By.ID, 'resolving_input')
         self.element_handler.slow_input(fill_mail_field, self.email)
         next_button = self.driver.find_element(By.ID, 'next_button')
         next_button.click()
-        time.sleep(3)
         pass_field = self.driver.find_element(By.ID, 'password')
         self.element_handler.slow_input(pass_field, self.password)
-        time.sleep(1)
         sign_in = self.driver.find_element(By.ID, 'signin_button')
         sign_in.click()
-        time.sleep(5)
 
     def register(self):
-        """Registers an AWS account by completing the required steps."""  # TODO need finish registation steps, when will be ready all components
-        self.open_page()  # TODO and made all tests
+        """Registers an AWS account by completing the required steps."""
+        self.open_page()
         self.step_one()
         self.step_two()
         self.step_three()

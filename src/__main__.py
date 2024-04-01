@@ -4,7 +4,7 @@ from helpers.temp_mail import generate_mail  # noqa
 
 def main() -> None:
     """
-    Creates an AWS instance using the provided email and password.
+    Creates an AwsRegistrator instance using the provided email and password.
 
     Args:
         None
@@ -13,8 +13,8 @@ def main() -> None:
         None
     """
     try:
-        # aws = AwsRegistrator(email=generate_mail()) # use to generate random temporary onetime mail (for tests)
-        aws = AwsRegistrator('your_gmail@examplea.com', 'your_password')
+        # aws = AwsRegistrator(email=generate_mail())  # use to generate random temporary onetime mail (for tests)
+        aws = AwsRegistrator('yourmail_example@gmx.com', 'your_password_')
         aws.register()
     except BaseException as e:
         print(f"\nError creating AWS instance: {e}\n")

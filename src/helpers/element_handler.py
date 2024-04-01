@@ -1,7 +1,8 @@
 from time import sleep
 
 from helpers.recaptcha_solver import CaptchaSolver
-from selenium.common import ElementNotSelectableException, ElementNotVisibleException, NoSuchElementException
+from selenium.common import ElementNotSelectableException, ElementNotVisibleException, NoSuchElementException, \
+    StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -12,17 +13,17 @@ class ElementHandler:
         self.driver = driver
         self.captcha_solver = CaptchaSolver(driver=self.driver)
 
-    def wait_for_element(self, locator, by_type='xpath', timeout=30, poll_frequency=0.5, name=''):
+    def wait_for_element(self, locator, by_type=By.XPATH, timeout=30, poll_frequency=0.5, name=''):
         element = None
+        self.driver.implicitly_wait(0)
         try:
-            wait = WebDriverWait(self.driver, timeout=timeout, poll_frequency=poll_frequency, ignored_exceptions=[
+            wait = WebDriverWait(self.driver, timeout=timeout, ignored_exceptions=[
                 NoSuchElementException,
-                ElementNotVisibleException,
+                ElementNotVisibleException, StaleElementReferenceException,
                 ElementNotSelectableException])
             element = wait.until(EC.visibility_of_element_located((by_type, locator)))
-        except:
+        except Exception:
             print(f"Element {name} NOT appeared ")
-            self.driver.implicitly_wait(2)
         return element
 
     def is_element_present(self, locator: str, by_type: str = 'xpath', name: str = '') -> bool:
@@ -30,8 +31,7 @@ class ElementHandler:
             element = self.driver.find_element(by_type, locator)
             if element is not None:
                 return True
-            else:
-                return False
+            return False
         except NoSuchElementException:
             print(f"Element {name} with type {by_type} not found {name}")
             return False
@@ -46,9 +46,8 @@ class ElementHandler:
             element = self.driver.find_element(By.XPATH, warning_xpath)
             if element.is_displayed():
                 return True
-            else:
-                return False
-        except NoSuchElementException:
+            return False
+        except Exception:
             print(f"The warning element '{name}' not shown")
             return False
 
@@ -56,7 +55,7 @@ class ElementHandler:
         for symbol in sequence:
             field_to_fill.send_keys(symbol)
             # sleep(choice([0.70, 0.91, 0.83, 0.55, 0.41, 0.63, 0.15, 0.21, 0.33]))
-            sleep(0.15)
+            sleep(0.10)
 
     def try_solve_captcha(self, xpath, retry=5, interval=3):
         print('trying to solve captcha')

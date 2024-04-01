@@ -1,14 +1,14 @@
 import json
+from config import configs
 
-from configs.constants import (
-    AWS_FILENAME,
-    CARD_LIMIT,
-    EMAIL_LIMIT,
-    MANDATORY_FIELDS,
-    PATH_TO_SAVE,
-    PHONE_LIMIT,
-    REQUIRED_FIELDS,
-)
+aws_configs = configs.aws_configs
+CARD_LIMIT = aws_configs.CARD_LIMIT
+EMAIL_LIMIT = aws_configs.EMAIL_LIMIT
+MANDATORY_FIELDS = aws_configs.MANDATORY_FIELDS
+PATH_TO_SAVE = configs.dir_configs.PATH_TO_SAVE
+PHONE_LIMIT = aws_configs.PHONE_LIMIT
+REQUIRED_FIELDS = aws_configs.REQUIRED_FIELDS
+
 from helpers.custom_exceptions import CardUsageLimitExceeded, EmailUsageLimitExceeded
 
 
@@ -34,13 +34,11 @@ class FileHandler:
             return limit < PHONE_LIMIT
         elif field == "emails":
             return limit < EMAIL_LIMIT
-        elif not limit or limit != 0:
-            return
 
     @staticmethod
-    def get_current_data(filename: str = AWS_FILENAME) -> dict:
-        """load file from current json file into dict, by default from AWS_FILENAME, configured from constants"""
-        with open(f"{PATH_TO_SAVE}") as file:
+    def get_current_data(filename: str = PATH_TO_SAVE) -> dict:
+        """load file from current json file into dict, by default from PATH_TO_SAVE, configured from constants"""
+        with open(fr"{filename}") as file:
             return json.load(file)
 
     def create_aws_user_info(self, root_password: str) -> bool:
@@ -109,7 +107,7 @@ class FileHandler:
 
         Args:
             data (dict): The data to be saved.
-            filename (str, optional): The name of the file (default: AWS_FILENAME).
+            filename (str, optional): The name of the file (default: PATH_TO_SAVE).
 
         Returns:
             None
@@ -130,7 +128,3 @@ class FileHandler:
     def validate_card_and_email(self, card, email):
         self.validate_email(email)
         self.validate_card(card)
-
-# a = FileHandler()
-# a.validate_card_and_email(email='asdad@gmail.com', card='4318290010100184')
-# a.validate_email(email='alex.smith@example.com')

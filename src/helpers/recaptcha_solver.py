@@ -1,8 +1,9 @@
-from configs.constants import CAPTCHA_API_KEY
+from config import configs
 from twocaptcha import TwoCaptcha
 
 # from configs import CAPTCHA_API_KEY
 
+CAPTCHA_API_KEY = configs.private_configs.CAPTCHA_API_KEY
 
 class CaptchaSolver:
     def __init__(self, driver):
