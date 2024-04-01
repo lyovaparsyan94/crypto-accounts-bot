@@ -1,19 +1,29 @@
 from config import configs
+from selenium.webdriver.chrome.webdriver import WebDriver
 from twocaptcha import TwoCaptcha
-
-# from configs import CAPTCHA_API_KEY
 
 CAPTCHA_API_KEY = configs.private_configs.CAPTCHA_API_KEY
 
+
 class CaptchaSolver:
-    def __init__(self, driver):
+    def __init__(self, driver: WebDriver) -> None:
+        """
+        Initialize a CaptchaSolver instance.
+
+        Args:
+            driver (WebDriver): The Selenium WebDriver instance.
+        """
         self.__api_key = CAPTCHA_API_KEY
         self.solver = TwoCaptcha(self.__api_key)
         self.driver = driver
 
     def get_captcha_code(self, image_src: str) -> str:
         """
-        Gets the captcha code from the provided image source (image_src)
+        Gets the captcha code from the provided image source.
+
+        Args:
+            image_src (str): The URL of the captcha image.
+
         Returns:
             str: The captcha code.
         """

@@ -1,7 +1,8 @@
-from config import configs
 import time
+
 import undetected_chromedriver as uc
 from async_simhandler import AsyncOnlineSimHandler
+from config import configs
 from helpers.element_handler import ElementHandler
 from helpers.file_handler import FileHandler
 from helpers.phone_identifier import get_country_code, get_national_number
@@ -15,6 +16,11 @@ from selenium.webdriver.common.by import By
 
 class BaseRegistrator:
     def __init__(self):
+        """
+        Base class for registration.
+
+        Initializes the Chrome WebDriver.
+        """
         # self.options = Options()
         # self.options.add_argument("--proxy-server=159.203.61.169:3128")
         # self.options.add_argument(rf'--user-data-dir={USER_DATA_DIR}')
@@ -25,11 +31,17 @@ class BaseRegistrator:
 
 class AwsRegistrator(BaseRegistrator):
     def __init__(self, email=None, password=None):
+        """
+        AWS registration class.
+
+        Args:
+            email (str, optional): The email address for registration.
+            password (str, optional): The password for registration.
+        """
         self.email = email
         self.card = configs.private_configs.CARD_NUMBER
         self.file_handler = FileHandler()
-        self.validate_email = self.file_handler.validate_card_and_email(email=self.email,
-                                                                        card=self.card)  # TODO move to __main__ file
+        self.file_handler.validate_card_and_email(email=self.email, card=self.card)
         super().__init__()
         self.password = password
         self.cvv, self.valid_date = configs.private_configs.CVV, configs.private_configs.EXPIRE_DATE
@@ -43,17 +55,33 @@ class AwsRegistrator(BaseRegistrator):
         self.first_name, self.last_name = generate_first_last_name()
         self.full_name = f"{self.first_name} {self.last_name}"
         self.cardholder = configs.private_configs.CARDHOLDER
-        # self.card, self.cvv, self.valid_date = card_data()['card_number'], card_data()['cvv'], card_data()['expiry_date']
         self.address, self.city, self.state, self.postal_code, self.country, self.full_address = addresses().values()
         self.url = configs.aws_configs.URL
         if password:
             self.imap_instance = ImapHandler(self.email, self.password)
 
-    def open_page(self):
+    def open_page(self) -> None:
+        """
+        Opens the registration page.
+
+        Returns:
+            None
+        """
         self.driver.maximize_window()
         self.driver.get(self.url)
 
-    def step_one(self, email=None, retry=5, interval=5):
+    def step_one(self, email: str = None, retry: int = 5, interval: int = 5) -> None:
+        """
+        Performs step one of the registration process.
+
+        Args:
+            email (str, optional): The email address for registration.
+            retry (int, optional): Number of retry attempts (default is 5).
+            interval (int, optional): Interval between retries (default is 5 seconds).
+
+        Returns:
+            None
+        """
         warning_email = True
         while retry >= 1 and warning_email:
             try:
@@ -67,7 +95,16 @@ class AwsRegistrator(BaseRegistrator):
                 warning_email = self.element_handler.is_shown_warning(warning_xpath='//*[@id="awsui-input-0"]',
                                                                       name='email warning')
 
-    def email_confirm(self, email=None):
+    def email_confirm(self, email: str = None) -> str:
+        """
+        Confirm the email address during registration.
+
+        Args:
+            email (str, optional): The email address to confirm (default is None).
+
+        Returns:
+            str: The confirmed email address.
+        """
         root_email_field = self.element_handler.wait_for_element(locator="//div//input[@name='emailAddress']",
                                                                  timeout=5, name='root email field')
         root_email_field.clear()
@@ -76,7 +113,6 @@ class AwsRegistrator(BaseRegistrator):
         else:
             email = generate_mail()
             self.email = email
-        # time.sleep(1)
         acc_name_field = self.element_handler.wait_for_element(locator="//div//input[@name='fullName']", timeout=6,
                                                                name='account field')
         acc_name_field.clear()
@@ -88,7 +124,13 @@ class AwsRegistrator(BaseRegistrator):
         time.sleep(3)
         return email
 
-    def step_two(self):
+    def step_two(self) -> None:
+        """
+        Perform step two of the registration process with checking email and get verify code to fill it.
+
+        Returns:
+            None
+        """
         confirm_mail = self.element_handler.wait_for_element("//awsui-input[@id='otp']/div/input[@name='otp']",
                                                              timeout=5)
         confirm_mail.clear()
@@ -109,7 +151,7 @@ class AwsRegistrator(BaseRegistrator):
             #     resend_button = self.driver.find_element(By.XPATH,
             #                                              '//*[@id="EmailValidationVerifyOTP"]/fieldset/awsui-button[2]/button')
             #     verify_code = None
-            #     resend_button.click()
+            #     resend_button.click() # TODO may be developed for need_resend email options
             #     self.step_two()
             # self.another_form(imap_data)
         while not verify_code:
@@ -118,7 +160,17 @@ class AwsRegistrator(BaseRegistrator):
             not_you_button.click()
             self.step_one()
 
-    def step_three(self, retry=15, interval=4):
+    def step_three(self, retry: int = 15, interval: int = 4) -> None:
+        """
+        Perform step three of the registration process.
+
+        Args:
+            retry (int, optional): Number of retry attempts (default is 15).
+            interval (int, optional): Interval between retries (default is 4 seconds).
+
+        Returns:
+            None
+        """
         root_name = False
         warning_shown = True
         verify_button = self.driver.find_element(By.XPATH,
@@ -131,7 +183,6 @@ class AwsRegistrator(BaseRegistrator):
                 time.sleep(interval)
                 retry -= 1
             finally:
-                # time.sleep(2)
                 warning_shown = self.element_handler.is_element_present(
                     locator="//a[@href='https://support.aws.amazon.com/#/contacts/aws-account-support']")
                 if not warning_shown and temp_root_name:
@@ -144,7 +195,13 @@ class AwsRegistrator(BaseRegistrator):
                     is_created_user_data = self.file_handler.create_aws_user_info(root_password=temp_root_name)
                     self.user_created = is_created_user_data
 
-    def root_confirm(self):
+    def root_confirm(self) -> str:
+        """
+        Confirm the root name during registration.
+
+        Returns:
+            str: The confirmed root name.
+        """
         root_name = generate_root_name()
         root_field1 = self.driver.find_element(By.XPATH, '//*[@id="awsui-input-3"]')
         root_field1.clear()
@@ -154,7 +211,13 @@ class AwsRegistrator(BaseRegistrator):
         self.element_handler.slow_input(root_field2, sequence=root_name)
         return root_name
 
-    def step_four(self):
+    def step_four(self) -> None:
+        """
+        Perform step four of the registration process with filling and confirming personal address information.
+
+        Returns:
+            None
+        """
         while not self.element_handler.is_element_present('//*[@id="awsui-radio-button-2"]'):
             time.sleep(1)
         else:
@@ -213,7 +276,13 @@ class AwsRegistrator(BaseRegistrator):
                                                     'country',
                                                     'postal_code', 'full_address'])
 
-    def step_five(self):
+    def step_five(self) -> None:
+        """
+        Perform step five of the registration process with filling card info and confirming it.
+
+        Returns:
+            None
+        """
         card_number_field = self.element_handler.wait_for_element(locator='//input[@name="cardNumber"]',
                                                                   name='card_field', timeout=3)
         while not card_number_field:
@@ -231,11 +300,9 @@ class AwsRegistrator(BaseRegistrator):
             year_field.click()
             mouth = self.driver.find_element(By.XPATH, f"//div[@data-value='{self.valid_date[3:]}']")
             mouth.click()
-            # time.sleep(1)
 
             cvv_field = self.driver.find_element(By.XPATH, '//input[@placeholder="CVV/CVC"]')
             self.element_handler.slow_input(cvv_field, self.cvv)
-            # time.sleep(1)
 
             cardholder_field = self.driver.find_element(By.XPATH, '//input[@name="accountHolderName"]')
             self.element_handler.slow_input(cardholder_field, self.cardholder)
@@ -247,7 +314,13 @@ class AwsRegistrator(BaseRegistrator):
             self.update_aws_multiple_fields(root_password=self.root_name,
                                             fields=['card', 'valid_date', 'cvv', 'cardholder'])
 
-    def step_six(self):
+    def step_six(self) -> None:
+        """
+        Perform step six of the registration process with phone and region info.
+
+        Returns:
+            None
+        """
         country_field = self.element_handler.wait_for_element(locator='//*[@id="awsui-select-5"]', timeout=10,
                                                               name='country_field')
         while not country_field:
@@ -265,13 +338,25 @@ class AwsRegistrator(BaseRegistrator):
             print(f'national number: {national_number}')
             self.element_handler.slow_input(national_number_field, national_number)
 
-    def step_seven(self):
+    def step_seven(self) -> None:
+        """
+        Perform step seven of the registration process with solving captcha.
+
+        Returns:
+            None
+        """
         self.element_handler.try_solve_captcha(
             xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
         verify = self.driver.find_element(By.XPATH, "//button[span[text()='Send SMS (step 4 of 5)']]")
         verify.click()
 
-    def step_eight(self):
+    def step_eight(self) -> None:
+        """
+        Perform step eight of the registration process with receiving sms message, input it and confirm.
+
+        Returns:
+            None
+        """
         sms_code = self.sim_handler.wait_order_info()['sms']
         sms_input_field = self.element_handler.wait_for_element(locator='//div//input[@name="smsPin"]',
                                                                 name='sms field',
@@ -292,23 +377,27 @@ class AwsRegistrator(BaseRegistrator):
             finish_button.click()
 
     def update_aws_multiple_fields(self, root_password: str, fields: list) -> None:
+        """
+            Update AWS user multiple fields.
+
+            Args:
+                root_password (str): The root password.
+                fields (list): List of fields to update.
+
+            Returns:
+                None
+            """
         for field in fields:
             value = getattr(self, field)
             self.file_handler.update_aws_user_info(root_password=root_password, field=field, value=value)
 
-    def another_form(self, imap_data):
-        self.driver.get(imap_data)
-        fill_mail_field = self.driver.find_element(By.ID, 'resolving_input')
-        self.element_handler.slow_input(fill_mail_field, self.email)
-        next_button = self.driver.find_element(By.ID, 'next_button')
-        next_button.click()
-        pass_field = self.driver.find_element(By.ID, 'password')
-        self.element_handler.slow_input(pass_field, self.password)
-        sign_in = self.driver.find_element(By.ID, 'signin_button')
-        sign_in.click()
+    def register(self) -> None:
+        """
+        Registers an AWS account by completing the required steps.
 
-    def register(self):
-        """Registers an AWS account by completing the required steps."""
+        Returns:
+            None
+        """
         self.open_page()
         self.step_one()
         self.step_two()

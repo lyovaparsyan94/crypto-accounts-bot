@@ -1,4 +1,5 @@
 from config import configs
+
 aws_configs = configs.aws_configs
 CARD_LIMIT = aws_configs.CARD_LIMIT
 EMAIL_LIMIT = aws_configs.EMAIL_LIMIT

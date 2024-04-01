@@ -1,19 +1,44 @@
 from time import sleep
 
 from helpers.recaptcha_solver import CaptchaSolver
-from selenium.common import ElementNotSelectableException, ElementNotVisibleException, NoSuchElementException, \
-    StaleElementReferenceException
+from selenium.common import (
+    ElementNotSelectableException,
+    ElementNotVisibleException,
+    NoSuchElementException,
+    StaleElementReferenceException,
+)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from undetected_chromedriver import WebElement
 
 
 class ElementHandler:
-    def __init__(self, driver):
+    def __init__(self, driver) -> None:
+        """
+        Initialize an ElementHandler instance.
+
+        Args:
+            driver: The Selenium WebDriver instance.
+        """
         self.driver = driver
         self.captcha_solver = CaptchaSolver(driver=self.driver)
 
-    def wait_for_element(self, locator, by_type=By.XPATH, timeout=30, poll_frequency=0.5, name=''):
+    def wait_for_element(self, locator: str, by_type: str = By.XPATH, timeout: int = 30, poll_frequency: float = 0.5,
+                         name: str = '') -> WebElement:
+        """
+        Wait for an element to become visible.
+
+        Args:
+            locator (str): The locator string (e.g., XPath) of the element.
+            by_type (str, optional): The type of locator (default is By.XPATH).
+            timeout (int, optional): Maximum time to wait for the element (default is 30 seconds).
+            poll_frequency (float, optional): Polling frequency (default is 0.5 seconds).
+            name (str, optional): Name of the element for logging purposes.
+
+        Returns:
+            WebElement: The located element.
+        """
         element = None
         self.driver.implicitly_wait(0)
         try:
@@ -26,7 +51,18 @@ class ElementHandler:
             print(f"Element {name} NOT appeared ")
         return element
 
-    def is_element_present(self, locator: str, by_type: str = 'xpath', name: str = '') -> bool:
+    def is_element_present(self, locator: str, by_type: str = By.XPATH, name: str = '') -> bool:
+        """
+        Check if an element is present on the page.
+
+        Args:
+            locator (str): The locator string (e.g., XPath) of the element.
+            by_type (str, optional): The type of locator (default is 'xpath').
+            name (str, optional): Name of the element for logging purposes.
+
+        Returns:
+            bool: True if the element is present, False otherwise.
+        """
         try:
             element = self.driver.find_element(by_type, locator)
             if element is not None:
@@ -40,6 +76,16 @@ class ElementHandler:
             return False
 
     def is_shown_warning(self, warning_xpath: str = '', name: str = None) -> bool:
+        """
+        Check if a warning element is displayed.
+
+        Args:
+            warning_xpath (str, optional): The XPath of the warning element (default is '').
+            name (str, optional): Name of the warning element for logging purposes.
+
+        Returns:
+            bool: True if the warning element is displayed, False otherwise.
+        """
         if warning_xpath is None:
             return True
         try:
@@ -51,13 +97,33 @@ class ElementHandler:
             print(f"The warning element '{name}' not shown")
             return False
 
-    def slow_input(self, field_to_fill, sequence):
+    def slow_input(self, field_to_fill, sequence: str) -> None:
+        """
+        Slowly input a sequence of characters into a field.
+
+        Args:
+            field_to_fill: The input field element.
+            sequence (str): The sequence of characters to input.
+
+        Returns:
+            None
+        """
         for symbol in sequence:
             field_to_fill.send_keys(symbol)
-            # sleep(choice([0.70, 0.91, 0.83, 0.55, 0.41, 0.63, 0.15, 0.21, 0.33]))
             sleep(0.10)
 
-    def try_solve_captcha(self, xpath, retry=5, interval=3):
+    def try_solve_captcha(self, xpath: str, retry: int = 5, interval: int = 3) -> None:
+        """
+        Attempt to solve a captcha using the provided XPath.
+
+        Args:
+            xpath (str): The XPath of the captcha element.
+            retry (int, optional): Number of retry attempts (default is 5).
+            interval (int, optional): Interval between retries (default is 3 seconds).
+
+        Returns:
+            None
+        """
         print('trying to solve captcha')
         warning1 = True
         warning2 = True
@@ -68,10 +134,22 @@ class ElementHandler:
                 retry -= 1
                 sleep(interval)
             finally:
-                warning1 = self.wait_for_element(locator="//a[@href='https://aws.amazon.com/support/createCase']", timeout=2)
-                warning2 = self.wait_for_element(locator="//form[@id='IdentityVerification']//div[contains(text(), 'Security check characters are incorrect. Please try again.')]", timeout=2)
+                warning1 = self.wait_for_element(locator="//a[@href='https://aws.amazon.com/support/createCase']",
+                                                 timeout=2)
+                warning2 = self.wait_for_element(
+                    locator="//form[@id='IdentityVerification']//div[contains(text(), 'Security check characters are incorrect. Please try again.')]",
+                    timeout=2)
 
-    def captcha_resolve(self, xpath):
+    def captcha_resolve(self, xpath: str) -> None:
+        """
+        Resolve a captcha using the provided XPath.
+
+        Args:
+            xpath (str): The XPath of the captcha element.
+
+        Returns:
+            None
+        """
         image = self.driver.find_element(By.XPATH, xpath)
         image_src = image.get_attribute('src')
         captcha_code = self.captcha_solver.get_captcha_code(image_src=image_src)

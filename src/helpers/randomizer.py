@@ -21,9 +21,6 @@ def generate_root_name() -> str:
         elif i % 3 == 0:
             select = choice(string.ascii_uppercase)
             password += select
-        # elif i % 5 == 0:
-        #     select = choice(string.digits)
-        #     password += select
         else:
             select = choice('!@#=+-')
             password += select

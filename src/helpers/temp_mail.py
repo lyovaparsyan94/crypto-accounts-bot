@@ -45,3 +45,4 @@ def check_last_message(email: str, retry: int = 5, interval: int = 5) -> bool | 
             print(f"Verify code not found, retrying {5 - retry}")
     return messages[-1]
 
+

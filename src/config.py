@@ -1,7 +1,7 @@
 import os
 from os.path import join
-from typing import Optional
-from pydantic import BaseModel, BaseSettings, Field
+
+from pydantic import BaseSettings
 
 BASE_DIR = os.path.abspath(__file__)
 project_dir = os.path.dirname(os.path.dirname(BASE_DIR))
@@ -9,12 +9,12 @@ ENV_DIR = join(project_dir, '.env')
 
 
 class PrivateConfigs(BaseSettings):
-    CVV: Optional[str]
-    EXPIRE_DATE: Optional[str]
-    CARD_NUMBER: Optional[str]
-    CARDHOLDER: Optional[str]
-    CAPTCHA_API_KEY: Optional[str]
-    SIM_API_TOKEN: Optional[str]
+    CVV: str | None
+    EXPIRE_DATE: str | None
+    CARD_NUMBER: str | None
+    CARDHOLDER: str | None
+    CAPTCHA_API_KEY: str | None
+    SIM_API_TOKEN: str | None
 
 
 class DirConfigs(BaseSettings):
@@ -42,7 +42,7 @@ class AwsSettings(BaseSettings):
 
 
 class SubSettings(BaseSettings):
-    sub_field: Optional[str]
+    sub_field: str | None
     # dir_configs = DirConfigs()
 
 

@@ -1,4 +1,5 @@
 import json
+
 from config import configs
 
 aws_configs = configs.aws_configs
@@ -15,7 +16,16 @@ from helpers.custom_exceptions import CardUsageLimitExceeded, EmailUsageLimitExc
 class FileHandler:
 
     def get_limit(self, value: str, field: str = 'cards') -> int:
-        """field must be cards or emails or phones"""
+        """
+        Get the usage limit for a specific value in the given field.
+
+        Args:
+            value (str): The value to check the usage limit for.
+            field (str, optional): The field to check the usage limit in (default is 'cards').
+
+        Returns:
+            int: The usage limit for the specified value in the given field.
+        """
         data = self.get_current_data()
         result = None
         if field in MANDATORY_FIELDS:
@@ -26,7 +36,16 @@ class FileHandler:
         return result
 
     def is_possible_to_use(self, value: str, field: str = 'cards') -> int | None:
-        """checks if value of field not used more than set limit """
+        """
+        Check if it is possible to use the specified value in the given field.
+
+        Args:
+            value (str): The value to check.
+            field (str, optional): The field to check (default is 'cards').
+
+        Returns:
+            bool | None: True if it is possible to use the value, False otherwise. None if the field is invalid.
+        """
         limit = self.get_limit(value=value, field=field)
         if field == "cards":
             return limit < CARD_LIMIT
@@ -77,8 +96,16 @@ class FileHandler:
 
     def update_aws_user_info(self, root_password: str, field: str, value: str) -> None:
         """
-        Updates AWS user information based on the provided field and value, such us first_name
-        values 'phone', 'email', 'card' are madatory to check, as they have using limit, set from constants
+        Updates AWS user information based on the provided field and value.
+
+        Args:
+            root_password (str): The root password for authentication.
+            field (str): The field to update (e.g., 'phone', 'email', 'card').
+            value (str): The new value for the specified field.
+
+        Notes:
+            - Values 'phone', 'email', and 'card' are mandatory to check, as they have usage limits set from constants.
+            - The method updates the user information if the conditions are met.
         """
         info_updated = False
         current_data = self.get_current_data()
@@ -115,16 +142,50 @@ class FileHandler:
         with open(f"{filename}", 'w') as file:
             json.dump(data, file, indent=2)
 
-    def validate_email(self, email):
+    def validate_email(self, email: str) -> bool:
+        """
+        Validate an email address and check if it exceeds the usage limit.
+
+        Args:
+            email (str): The email address to validate.
+
+        Raises:
+            EmailUsageLimitExceeded: If the email usage limit is exceeded.
+
+        Returns:
+            bool: True if the email is valid and within the usage limit, False otherwise.
+        """
         if email and not self.is_possible_to_use(field='emails', value=email):
             raise EmailUsageLimitExceeded(email)
         return True
 
-    def validate_card(self, card):
+    def validate_card(self, card: str) -> bool:
+        """
+        Validate a card number and check if it exceeds the usage limit.
+
+        Args:
+            card (str): The card number to validate.
+
+        Raises:
+            CardUsageLimitExceeded: If the card usage limit is exceeded.
+
+        Returns:
+            bool: True if the card is valid and within the usage limit, False otherwise.
+        """
         if card and not self.is_possible_to_use(field='cards', value=card):
             raise CardUsageLimitExceeded(card)
         return True
 
-    def validate_card_and_email(self, card, email):
+    def validate_card_and_email(self, card: str, email: str) -> None:
+        """
+        Validate both a card number and an email address.
+
+        Args:
+            card (str): The card number to validate.
+            email (str): The email address to validate.
+
+        Notes:
+            - Calls the validate_email and validate_card methods.
+        """
         self.validate_email(email)
         self.validate_card(card)

@@ -1,8 +1,7 @@
 import asyncio
 import json
-from typing import Union
+
 from config import configs
-from dotenv import load_dotenv
 from pyonlinesim import OnlineSMS
 
 aws_configs = configs.aws_configs
@@ -212,7 +211,7 @@ class AsyncOnlineSimHandler:
         print(f"new active ordered_number: {ordered_number}")
         return ordered_number
 
-    def wait_order_info(self, operation_id: int | None = None) -> Union[dict, None]:
+    def wait_order_info(self, operation_id: int | None = None) -> dict | None:
         """
         Waits for order information related to the specified operation ID.
 
