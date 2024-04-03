@@ -1,0 +1,20 @@
+formatters:
+  standard:
+    datefmt: '%Y-%m-%d %H:%M:%S'
+    format: '%(asctime)s - %(levelname)s - %(filename)s - %(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: standard
+    level: INFO
+  file:
+    class: logging.FileHandler
+    filename: C:\Users\parsy\OneDrive\Desktop\DOT\crypto-accounts-bot\src\logs\aws_logs.log
+    formatter: standard
+    level: INFO
+root:
+  handlers:
+  - console
+  - file
+  level: INFO
+version: 1

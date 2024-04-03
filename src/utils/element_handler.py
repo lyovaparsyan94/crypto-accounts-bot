@@ -1,6 +1,6 @@
 from time import sleep
 
-from helpers.recaptcha_solver import CaptchaSolver
+from logs.aws_logger import awslogger
 from selenium.common import (
     ElementNotSelectableException,
     ElementNotVisibleException,
@@ -11,6 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from undetected_chromedriver import WebElement
+from utils.recaptcha_solver import CaptchaSolver
 
 
 class ElementHandler:
@@ -48,7 +49,7 @@ class ElementHandler:
                 ElementNotSelectableException])
             element = wait.until(EC.visibility_of_element_located((by_type, locator)))
         except Exception:
-            print(f"Element {name} NOT appeared ")
+            awslogger.log_warning(f"Element {name} NOT appeared ")
         return element
 
     def is_element_present(self, locator: str, by_type: str = By.XPATH, name: str = '') -> bool:
@@ -69,10 +70,10 @@ class ElementHandler:
                 return True
             return False
         except NoSuchElementException:
-            print(f"Element {name} with type {by_type} not found {name}")
+            awslogger.log_warning(f"Element {name} with type {by_type} not found {name}")
             return False
         except Exception:
-            print(f"Unknown Error {name}")
+            awslogger.log_warning(f"Unknown error {name}")
             return False
 
     def is_shown_warning(self, warning_xpath: str = '', name: str = None) -> bool:
@@ -94,7 +95,7 @@ class ElementHandler:
                 return True
             return False
         except Exception:
-            print(f"The warning element '{name}' not shown")
+            awslogger.log_warning(f"The warning element '{name}' not shown")
             return False
 
     def slow_input(self, field_to_fill, sequence: str) -> None:
@@ -124,7 +125,7 @@ class ElementHandler:
         Returns:
             None
         """
-        print('trying to solve captcha')
+        awslogger.log_info('trying to solve captcha')
         warning1 = True
         warning2 = True
         while (retry >= 1 and warning1) or (retry >= 1 and warning2):
@@ -153,6 +154,6 @@ class ElementHandler:
         image = self.driver.find_element(By.XPATH, xpath)
         image_src = image.get_attribute('src')
         captcha_code = self.captcha_solver.get_captcha_code(image_src=image_src)
-        print(f'captcha code: {captcha_code}')
+        awslogger.log_info(f'captcha code: {captcha_code}')
         input_captcha = self.driver.find_element(By.XPATH, "//*[@id='captchaGuess'] //input[@name='captchaGuess']")
         self.slow_input(input_captcha, captcha_code)

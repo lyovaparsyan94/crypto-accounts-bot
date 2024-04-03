@@ -1,5 +1,6 @@
 from aws_scrapper import AwsRegistrator
-from helpers.temp_mail import generate_mail  # noqa
+from logs.aws_logger import awslogger
+from utils.temp_mail import generate_mail  # noqa
 
 
 def main() -> None:
@@ -17,7 +18,7 @@ def main() -> None:
         aws = AwsRegistrator('yourmail_example@gmx.com', 'your_password_')
         aws.register()
     except BaseException as e:
-        print(f"\nError creating AWS instance: {e}\n")
+        awslogger.log_critical(f"\nError creating AWS instance: {e}\n")
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 import re
 
 from imap_tools import A, MailBox
+from logs.aws_logger import awslogger
 
 
 class ImapHandler:
@@ -34,9 +35,9 @@ class ImapHandler:
                     match = re.search(r"\b\d{6}\b", body)
                     if match:
                         code = match.group()
-                        print(f"Verification code: {code}")
+                        awslogger.log_info(f"Verification code: {code}")
                         verify_codes.append(code)
-        print(f'all verify codes: {verify_codes}')
+        awslogger.log_info(f'all verify codes: {verify_codes}')
         return verify_codes[-1]
 
     def extract_link_from_text(self, text: str) -> str | None:
@@ -52,7 +53,7 @@ class ImapHandler:
         url_pattern = r"https?://[^\s]+"
         urls = re.findall(url_pattern, text)
         if urls[0]:
-            print(f"Extracted link: {urls[0]}")
+            awslogger.log_info(f"Extracted link: {urls[0]}")
         else:
-            print("No link found in the text.")
+            awslogger.log_info("No link found in the text.")
         return urls[0] if urls else None

@@ -1,6 +1,7 @@
 import re
 from time import sleep
 
+from logs.aws_logger import awslogger
 from tempmail import EMail
 
 
@@ -13,7 +14,8 @@ def generate_mail() -> str:
     """
     email = EMail()
     email = email.address
-    print(f"generated: {email}")
+    awslogger.log_info(f"generated: {email}")
+
     return email
 
 
@@ -37,12 +39,12 @@ def check_last_message(email: str, retry: int = 5, interval: int = 5) -> bool | 
                     match = re.search(r"\b\d{6}\b", body)
                     if match:
                         code = match.group()
-                        print(f"Verification code: {code}")
+                        awslogger.log_info(f"Verification code: {code}")
                         messages.append(code)
         except BaseException:
             retry -= 1
             sleep(interval)
-            print(f"Verify code not found, retrying {5 - retry}")
+            awslogger.log_info(f"Verify code not found, retrying {5 - retry}")
     return messages[-1]
 
 

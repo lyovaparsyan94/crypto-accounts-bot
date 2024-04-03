@@ -3,6 +3,7 @@ from random import choice
 
 import names
 from faker import Faker
+from logs.aws_logger import awslogger
 
 
 def generate_root_name() -> str:
@@ -24,7 +25,7 @@ def generate_root_name() -> str:
         else:
             select = choice('!@#=+-')
             password += select
-    print(f'generated root name: {password}')
+    awslogger.log_info(f'generated root name: {password}')
     return password
 
 

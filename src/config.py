@@ -23,6 +23,8 @@ class DirConfigs(BaseSettings):
     SRC_DIR = os.path.dirname(BASE_DIR)
     DATA_DIR = join(SRC_DIR, join('data'))
     LOGS_DIR = join(SRC_DIR, join('logs'))
+    LOG_FILE = join(LOGS_DIR, 'aws_logs.log')
+    LOG_CONFIG_FILE = join(LOGS_DIR, 'logging.yaml')
     PATH_TO_SAVE = os.path.join(DATA_DIR, AWS_FILENAME)
     PATH_OF_SIM_JSON = os.path.join(DATA_DIR, CURRENT_SIM_INFO)
 

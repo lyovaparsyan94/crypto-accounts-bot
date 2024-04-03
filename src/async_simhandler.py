@@ -2,6 +2,7 @@ import asyncio
 import json
 
 from config import configs
+from logs.aws_logger import awslogger
 from pyonlinesim import OnlineSMS
 
 aws_configs = configs.aws_configs
@@ -29,8 +30,6 @@ class AsyncOnlineSimHandler:
         """
         async with OnlineSMS(api_key=self.__api_token) as client:
             result = await client.get_balance()
-            print(self.operation_id)
-            print(self.received_phone_number)
             return result
 
     async def __get_service_info(self) -> dict:
@@ -46,7 +45,7 @@ class AsyncOnlineSimHandler:
             countryes = await client.get_services(country=ONLINE_COUNTRY_CODE)
             for service in countryes.services:
                 if service.service == ONLINE_SIM_SERVICE:
-                    print(
+                    awslogger.log_info(
                         f'ID: {service.id} | Available Numbers: {service.count} | Service: {service.service} | Price: {service.price}')
                     return {f"{ONLINE_SIM_SERVICE}": service.id, 'available_numbers': service.count,
                             'service_name': ONLINE_SIM_SERVICE}
@@ -108,7 +107,7 @@ class AsyncOnlineSimHandler:
                 current_number_info = json.load(file)
                 return current_number_info
         except FileNotFoundError:
-            print(f"File '{path}' not found. Please make sure the file exists.")
+            awslogger.log_critical(f"File '{path}' not found. Please make sure the file exists.")
             return {}
 
     async def check_current_active_sim(self, operation_id: int) -> dict[str, str] | None:
@@ -141,9 +140,9 @@ class AsyncOnlineSimHandler:
                         return info
                     await asyncio.sleep(interval)
             except TimeoutError:
-                print("Timed out waiting for active number info.")
+                awslogger.log_critical("Timed out waiting for active number info.")
             except Exception:
-                print("Number is not active")
+                awslogger.log_critical("Number is not active")
 
     async def __wait_order_info(self, operation_id: int) -> dict[str, str] | None:
         """
@@ -165,19 +164,19 @@ class AsyncOnlineSimHandler:
             try:
                 for _ in range(period):
                     my_orders = await client.get_order_info(operation_id=operation_id)
-                    print(f'waiting for sms to... {my_orders.orders[0].number}')
+                    awslogger.log_info(f'waiting for sms to... {my_orders.orders[0].number}')
                     if my_orders.orders[0]:
                         order = my_orders.orders[0]
                         info = {'phone': order.number, 'country': order.country, 'service': order.service,
                                 'sms': order.message, 'operation_id': order.operation_id}
                         if order.message:
-                            print(f'standard info: {info}')
+                            awslogger.log_info(f'standard info: {info}')
                             return info
                     await asyncio.sleep(interval)
             except TimeoutError:
-                print("Timed out waiting for SMS.")
+                awslogger.log_critical("Timed out waiting for SMS.")
             except Exception:
-                print('sms not received')
+                awslogger.log_critical(f'standard info: {info}')
                 return None
 
     async def __finish_order(self, operation_id: int) -> None:
@@ -208,7 +207,7 @@ class AsyncOnlineSimHandler:
             str: The ordered phone number.
         """
         ordered_number = asyncio.run(self.__order_number())
-        print(f"new active ordered_number: {ordered_number}")
+        awslogger.log_info(f"new active ordered_number: {ordered_number}")
         return ordered_number
 
     def wait_order_info(self, operation_id: int | None = None) -> dict | None:
@@ -219,7 +218,7 @@ class AsyncOnlineSimHandler:
             operation_id (Optional[str]): The operation ID to wait for (defaults to self.operation_id).
 
         Returns:
-            Union[dict, None]: Information related to the order if available, else None.
+            dict | None: Information related to the order if available, else None.
         """
         operation_id = operation_id or self.operation_id
         try:
@@ -235,4 +234,3 @@ class AsyncOnlineSimHandler:
             operation_id (int): The operation ID to finish.
         """
         asyncio.run(self.__finish_order(operation_id))
-

@@ -1,6 +1,7 @@
 import json
 
 from config import configs
+from logs.aws_logger import awslogger
 
 aws_configs = configs.aws_configs
 CARD_LIMIT = aws_configs.CARD_LIMIT
@@ -9,8 +10,7 @@ MANDATORY_FIELDS = aws_configs.MANDATORY_FIELDS
 PATH_TO_SAVE = configs.dir_configs.PATH_TO_SAVE
 PHONE_LIMIT = aws_configs.PHONE_LIMIT
 REQUIRED_FIELDS = aws_configs.REQUIRED_FIELDS
-
-from helpers.custom_exceptions import CardUsageLimitExceeded, EmailUsageLimitExceeded
+from utils.custom_exceptions import CardUsageLimitExceeded, EmailUsageLimitExceeded
 
 
 class FileHandler:
@@ -110,20 +110,22 @@ class FileHandler:
         info_updated = False
         current_data = self.get_current_data()
         user = current_data['users'][0]
-        if field in REQUIRED_FIELDS:
-            mandatory_field = f"{field}s"
-            if mandatory_field not in MANDATORY_FIELDS:
+        if field not in REQUIRED_FIELDS:
+            awslogger.log_critical(f'field {field} not found')
+            raise ValueError(f'field {field} not found ')
+
+        mandatory_field = f"{field}s"
+        if mandatory_field not in MANDATORY_FIELDS:
+            user[root_password][field] = value
+            info_updated = True
+        elif self.is_possible_to_use(value=value, field=mandatory_field):
+            data_of_field = current_data.get(f'used_{mandatory_field}_count', False)
+            used_times = data_of_field.get(value, 0)
+            if isinstance(used_times, int):
+                updated_times_used = used_times + 1
+                current_data[f'used_{mandatory_field}_count'][value] = updated_times_used
                 user[root_password][field] = value
                 info_updated = True
-            else:
-                if self.is_possible_to_use(value=value, field=mandatory_field):
-                    data_of_field = current_data.get(f'used_{mandatory_field}_count', False)
-                    used_times = data_of_field.get(value, 0)
-                    if isinstance(used_times, int):
-                        updated_times_used = used_times + 1
-                        current_data[f'used_{mandatory_field}_count'][value] = updated_times_used
-                        user[root_password][field] = value
-                        info_updated = True
 
         if info_updated:
             self.save_data(data=current_data)
@@ -189,3 +191,4 @@ class FileHandler:
         """
         self.validate_email(email)
         self.validate_card(card)
+        awslogger.log_info(f'{card} and {email} validated')
