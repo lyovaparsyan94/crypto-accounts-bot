@@ -54,8 +54,7 @@ class FileHandler:
         elif field == "emails":
             return limit < EMAIL_LIMIT
 
-    @staticmethod
-    def get_current_data(filename: str = PATH_TO_SAVE) -> dict:
+    def get_current_data(self, filename: str = PATH_TO_SAVE) -> dict:
         """load file from current json file into dict, by default from PATH_TO_SAVE, configured from constants"""
         with open(fr"{filename}") as file:
             return json.load(file)

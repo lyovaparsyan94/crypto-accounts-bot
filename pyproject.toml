@@ -52,6 +52,7 @@ select = [
     "I",
     "ANN",
 ]
+ignore = ['ANN101']
 
 [tool.ruff.format]
 quote-style = "double"

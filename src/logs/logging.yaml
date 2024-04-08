@@ -9,7 +9,7 @@ handlers:
     level: INFO
   file:
     class: logging.FileHandler
-    filename: C:\Users\parsy\OneDrive\Desktop\DOT\crypto-accounts-bot\src\logs\aws_logs.log
+    filename: aws_logs.log
     formatter: standard
     level: INFO
 root:

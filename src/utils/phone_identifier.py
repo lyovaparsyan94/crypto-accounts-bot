@@ -27,5 +27,5 @@ def get_national_number(phone: str) -> str:
         str: The national number for the phone number.
     """
     number = phonenumbers.parse(phone)
-    str_number = f"{number.national_number}"
+    str_number = str(number.national_number)
     return str_number

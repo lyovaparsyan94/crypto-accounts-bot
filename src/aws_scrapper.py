@@ -31,7 +31,7 @@ class BaseRegistrator:
 
 
 class AwsRegistrator(BaseRegistrator):
-    def __init__(self, email=None, password=None):
+    def __init__(self, email: str = None, password: str = None):
         """
         AWS registration class.
 
@@ -49,7 +49,7 @@ class AwsRegistrator(BaseRegistrator):
         self.account_name = email[0:-4].capitalize()
         self.user_created = False
         self.element_handler = ElementHandler(driver=self.driver)
-        self.sim_handler = AsyncOnlineSimHandler()
+        self.sim_handler = AsyncOnlineSimHandler(api_token=configs.private_configs.SIM_API_TOKEN)
         self.root_name = None
         self.verify_email_code = None
         self.phone = None
@@ -180,6 +180,7 @@ class AwsRegistrator(BaseRegistrator):
                     self.element_handler.try_solve_captcha(
                         xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
                     verify_button.click()
+                    time.sleep(2)
                     self.root_name = temp_root_name
                     root_name = temp_root_name
                     is_created_user_data = self.file_handler.create_aws_user_info(root_password=temp_root_name)
@@ -209,7 +210,7 @@ class AwsRegistrator(BaseRegistrator):
             None
         """
 
-        personal = self.element_handler.wait_for_element(locator='//*[@id="awsui-radio-button-2"]', timeout=10, name='personal')
+        personal = self.element_handler.wait_for_element(locator='//*[@id="awsui-radio-button-2"]', name='personal')
         personal.click()
 
         full_name_field = self.driver.find_element(By.XPATH, "//div//input[@name='address.fullName']")
@@ -264,7 +265,7 @@ class AwsRegistrator(BaseRegistrator):
             None
         """
         card_number_field = self.element_handler.wait_for_element(locator='//input[@name="cardNumber"]',
-                                                                  name='card_field', timeout=3)
+                                                                  name='card_field')
 
         self.element_handler.slow_input(card_number_field, self.card)
 
@@ -287,6 +288,7 @@ class AwsRegistrator(BaseRegistrator):
         verify_step = self.driver.find_element(By.XPATH,
                                                '//*[@id="PaymentInformation"]/fieldset/awsui-button/button')
         verify_step.click()
+        time.sleep(2)
 
         self.update_aws_multiple_fields(root_password=self.root_name,
                                         fields=['card', 'valid_date', 'cvv', 'cardholder'])
@@ -298,7 +300,7 @@ class AwsRegistrator(BaseRegistrator):
         Returns:
             None
         """
-        country_field = self.element_handler.wait_for_element(locator='//*[@id="awsui-select-5"]', timeout=10,
+        country_field = self.element_handler.wait_for_element(locator='//*[@id="awsui-select-5"]',
                                                               name='country_field')
 
         country_field.click()
@@ -324,6 +326,7 @@ class AwsRegistrator(BaseRegistrator):
             xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
         verify = self.driver.find_element(By.XPATH, "//button[span[text()='Send SMS (step 4 of 5)']]")
         verify.click()
+        time.sleep(2)
 
     def step_eight(self) -> None:
         """
@@ -344,8 +347,8 @@ class AwsRegistrator(BaseRegistrator):
         self.file_handler.update_aws_user_info(root_password=self.root_name, field='phone', value=self.phone)
         finish_button = self.driver.find_element(By.XPATH,
                                                  '//*[@id="SupportPlan"]/fieldset/div[2]/awsui-button/button')
-        time.sleep(2)
         finish_button.click()
+        time.sleep(2)
 
     def update_aws_multiple_fields(self, root_password: str, fields: list) -> None:
         """

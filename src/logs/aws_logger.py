@@ -6,12 +6,9 @@ import os
 import yaml
 from config import configs
 
-LOG_CONFIG_FILE = configs.dir_configs.LOG_CONFIG_FILE
-LOG_FILE = configs.dir_configs.LOG_FILE
-
 
 class AwsLogger:
-    def __init__(self, conf_file: str = LOG_CONFIG_FILE) -> None:
+    def __init__(self, conf_file: str) -> None:
         """
         Initializes an instance of AwsLogger.
 
@@ -21,7 +18,7 @@ class AwsLogger:
         dirname = os.path.dirname(__file__)
         with open(conf_file) as config_file:
             config = yaml.safe_load(config_file)
-        config['handlers']['file']['filename'] = os.path.join(dirname, LOG_FILE)
+        config['handlers']['file']['filename'] = os.path.join(dirname, configs.dir_configs.LOG_FILE)
         with open(conf_file, 'w') as config_file:
             yaml.dump(config, config_file)
 
@@ -75,4 +72,4 @@ class AwsLogger:
         self.logger.critical(message)
 
 
-awslogger = AwsLogger()
+awslogger = AwsLogger(conf_file=configs.dir_configs.LOG_CONFIG_FILE)

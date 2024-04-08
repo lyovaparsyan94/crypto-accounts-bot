@@ -75,7 +75,6 @@ def generate_random_addresses() -> dict:
     city = fake.city()
     state = fake.state_abbr()
     postal_code = fake.postcode()
-    # country = fake.country()
     country = 'United States'
     fake_info = {
         'address': address,

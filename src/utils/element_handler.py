@@ -1,5 +1,6 @@
 from time import sleep
 
+from config import configs
 from logs.aws_logger import awslogger
 from selenium.common import (
     ElementNotSelectableException,
@@ -23,9 +24,9 @@ class ElementHandler:
             driver: The Selenium WebDriver instance.
         """
         self.driver = driver
-        self.captcha_solver = CaptchaSolver(driver=self.driver)
+        self.captcha_solver = CaptchaSolver(driver=self.driver, captcha_key=configs.private_configs.CAPTCHA_API_KEY)
 
-    def wait_for_element(self, locator: str, by_type: str = By.XPATH, timeout: int = 30, poll_frequency: float = 0.5,
+    def wait_for_element(self, locator: str, by_type: By = By.XPATH, timeout: int = 30, poll_frequency: float = 0.5,
                          name: str = '') -> WebElement:
         """
         Wait for an element to become visible.
@@ -52,7 +53,7 @@ class ElementHandler:
             awslogger.log_warning(f"Element {name} NOT appeared ")
         return element
 
-    def is_element_present(self, locator: str, by_type: str = By.XPATH, name: str = '') -> bool:
+    def is_element_present(self, locator: str, by_type: By = By.XPATH, name: str = '') -> bool:
         """
         Check if an element is present on the page.
 
@@ -98,19 +99,19 @@ class ElementHandler:
             awslogger.log_warning(f"The warning element '{name}' not shown")
             return False
 
-    def slow_input(self, field_to_fill, sequence: str) -> None:
+    def slow_input(self, input_field, sequence: str) -> None:
         """
-        Slowly input a sequence of characters into a field.
+        Slowly input a sequence of characters into a input_field.
 
         Args:
-            field_to_fill: The input field element.
+            input_field: The input field element.
             sequence (str): The sequence of characters to input.
 
         Returns:
             None
         """
         for symbol in sequence:
-            field_to_fill.send_keys(symbol)
+            input_field.send_keys(symbol)
             sleep(0.10)
 
     def try_solve_captcha(self, xpath: str, retry: int = 5, interval: int = 3) -> None:

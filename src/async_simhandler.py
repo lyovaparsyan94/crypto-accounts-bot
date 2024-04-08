@@ -5,19 +5,17 @@ from config import configs
 from logs.aws_logger import awslogger
 from pyonlinesim import OnlineSMS
 
-aws_configs = configs.aws_configs
-ONLINE_SIM_SERVICE = aws_configs.ONLINE_SIM_SERVICE
-ONLINE_COUNTRY_CODE = aws_configs.ONLINE_COUNTRY_CODE
-PATH_OF_SIM_JSON = configs.dir_configs.PATH_OF_SIM_JSON
-
 
 class AsyncOnlineSimHandler:
 
-    def __init__(self) -> None:
+    def __init__(self, api_token: str) -> None:
         """
         Initializes an instance of AsyncOnlineSimHandler.
+
+        Args:
+            api_token (str): The API token for OnlineSim service.
         """
-        self.__api_token = configs.private_configs.SIM_API_TOKEN
+        self.__api_token = api_token
         self.operation_id = None
         self.received_phone_number = None
 
@@ -42,15 +40,16 @@ class AsyncOnlineSimHandler:
                 - Value: Service ID, available numbers, price, and service name
         """
         async with OnlineSMS(api_key=self.__api_token) as client:
-            countryes = await client.get_services(country=ONLINE_COUNTRY_CODE)
+            countryes = await client.get_services(country=configs.aws_configs.ONLINE_COUNTRY_CODE)
             for service in countryes.services:
-                if service.service == ONLINE_SIM_SERVICE:
+                if service.service == configs.aws_configs.ONLINE_SIM_SERVICE:
                     awslogger.log_info(
                         f'ID: {service.id} | Available Numbers: {service.count} | Service: {service.service} | Price: {service.price}')
-                    return {f"{ONLINE_SIM_SERVICE}": service.id, 'available_numbers': service.count,
-                            'service_name': ONLINE_SIM_SERVICE}
+                    return {f"{configs.aws_configs.ONLINE_SIM_SERVICE}": service.id, 'available_numbers': service.count,
+                            'service_name': configs.aws_configs.ONLINE_SIM_SERVICE}
 
-    async def __order_number(self, service: str = ONLINE_SIM_SERVICE, country: int = ONLINE_COUNTRY_CODE) -> str:
+    async def __order_number(self, service: str = configs.aws_configs.ONLINE_SIM_SERVICE,
+                             country: int = configs.aws_configs.ONLINE_COUNTRY_CODE) -> str:
         """
         Orders a phone number using the OnlineSMS API.
 
@@ -75,7 +74,7 @@ class AsyncOnlineSimHandler:
                 self.save_sim_data(current_sim)
                 return received_number
 
-    def save_sim_data(self, current_sim: dict, path: str = PATH_OF_SIM_JSON) -> None:
+    def save_sim_data(self, current_sim: dict, path: str = configs.dir_configs.PATH_OF_SIM_JSON) -> None:
         """
         Saves the current SIM data (operation ID, received phone number, and country) to a JSON file.
 
@@ -89,7 +88,7 @@ class AsyncOnlineSimHandler:
         with open(f'{path}', 'w') as file:
             json.dump(current_sim, file, indent=4)
 
-    def read_current_sim_data(self, path: str = PATH_OF_SIM_JSON) -> dict:
+    def read_current_sim_data(self, path: str = configs.dir_configs.PATH_OF_SIM_JSON) -> dict:
         """
         Reads the contents of a JSON file containing current SIM data.
 
