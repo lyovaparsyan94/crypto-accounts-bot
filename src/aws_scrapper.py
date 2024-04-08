@@ -25,6 +25,9 @@ class BaseRegistrator:
         Initializes the Chrome WebDriver.
         """
         self.options = Options()
+        self.options.add_argument('--headless')
+        self.options.add_argument('--no-sandbox')
+        self.options.add_argument('--disable-dev-shm-usage')
         # self.options.add_argument("--proxy-server=159.203.61.169:3128")
         # self.options.add_argument(rf'--user-data-dir={USER_DATA_DIR}')
         self.driver = webdriver.Chrome()
