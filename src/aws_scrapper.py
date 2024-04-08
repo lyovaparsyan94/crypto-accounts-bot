@@ -1,6 +1,6 @@
 import time
 from selenium import webdriver
-import undetected_chromedriver as uc
+# import undetected_chromedriver as uc
 from selenium.webdriver.chrome.options import Options
 
 from async_simhandler import AsyncOnlineSimHandler
