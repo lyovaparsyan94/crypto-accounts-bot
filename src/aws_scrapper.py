@@ -1,6 +1,6 @@
 import time
 from selenium import webdriver
-# import undetected_chromedriver as uc
+import undetected_chromedriver as uc
 from selenium.webdriver.chrome.options import Options
 
 from async_simhandler import AsyncOnlineSimHandler
@@ -24,16 +24,16 @@ class BaseRegistrator:
 
         Initializes the Chrome WebDriver.
         """
-        self.options = Options()
-        self.options.binary_location = "/usr/bin/google-chrome"
+        # self.options = Options()
+        # self.options.binary_location = "/usr/bin/google-chrome"
+        self.options = uc.ChromeOptions()
         self.options.add_argument('--headless')
         self.options.add_argument('--no-sandbox')
         self.options.add_argument('--disable-dev-shm-usage')
         # self.options.add_argument("--proxy-server=159.203.61.169:3128")
         # self.options.add_argument(rf'--user-data-dir={USER_DATA_DIR}')
-        self.driver = webdriver.Chrome()
-        # self.options = uc.ChromeOptions()
-        # self.driver = uc.Chrome(options=self.options)
+        # self.driver = webdriver.Chrome()
+        self.driver = uc.Chrome(options=self.options)
 
 
 class AwsRegistrator(BaseRegistrator):
