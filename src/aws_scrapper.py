@@ -25,6 +25,7 @@ class BaseRegistrator:
         Initializes the Chrome WebDriver.
         """
         self.options = Options()
+        self.options.binary_location = "/usr/bin/google-chrome"
         self.options.add_argument('--headless')
         self.options.add_argument('--no-sandbox')
         self.options.add_argument('--disable-dev-shm-usage')
