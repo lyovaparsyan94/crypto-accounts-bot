@@ -11,7 +11,7 @@ handlers:
     class: logging.FileHandler
     filename: aws_logs.log
     formatter: standard
-    level: INFO
+    level: WARNING
 root:
   handlers:
   - console

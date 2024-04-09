@@ -16,7 +16,7 @@ from utils.recaptcha_solver import CaptchaSolver
 
 
 class ElementHandler:
-    def __init__(self, driver) -> None:
+    def __init__(self, driver: WebElement) -> None:
         """
         Initialize an ElementHandler instance.
 
@@ -99,16 +99,20 @@ class ElementHandler:
             awslogger.log_info(f"The warning element '{name}' not shown")
             return False
 
-    def slow_input(self, input_field, sequence: str) -> None:
+    def slow_input(self, input_field: WebElement, sequence: str) -> None:
         """
-        Slowly input a sequence of characters into a input_field.
+        Slowly inputs a sequence of characters into an input field.
 
         Args:
-            input_field: The input field element.
+            input_field (Any): The input field element (e.g., a web element or input field object).
             sequence (str): The sequence of characters to input.
 
         Returns:
             None
+
+        Notes:
+            - This method simulates human-like typing by adding a delay between each character input.
+            - Useful for testing or scenarios where realistic user input timing is required.
         """
         for symbol in sequence:
             input_field.send_keys(symbol)

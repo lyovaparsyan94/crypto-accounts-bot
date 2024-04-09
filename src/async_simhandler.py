@@ -88,27 +88,6 @@ class AsyncOnlineSimHandler:
         with open(f'{path}', 'w') as file:
             json.dump(current_sim, file, indent=4)
 
-    def read_current_sim_data(self, path: str = configs.dir_configs.PATH_OF_SIM_JSON) -> dict:
-        """
-        Reads the contents of a JSON file containing current SIM data.
-
-        Args:
-            path (str, optional): The path to the JSON file. Defaults to "PATH_OF_SIM_JSON".
-
-        Returns:
-            dict: The current SIM data as a dictionary.
-
-        Notes:
-            - The JSON file should contain a dictionary with keys: "operation_id", "received_number", and "country".
-        """
-        try:
-            with open(f"{path}") as file:
-                current_number_info = json.load(file)
-                return current_number_info
-        except FileNotFoundError:
-            awslogger.log_critical(f"File '{path}' not found. Please make sure the file exists.")
-            return {}
-
     async def check_current_active_sim(self, operation_id: int) -> dict[str, str] | None:
         """
         Checks if the specified operation ID corresponds to an active phone number.

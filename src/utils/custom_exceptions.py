@@ -1,9 +1,5 @@
 from config import configs
 
-aws_configs = configs.aws_configs
-CARD_LIMIT = aws_configs.CARD_LIMIT
-EMAIL_LIMIT = aws_configs.EMAIL_LIMIT
-
 
 class EmailUsageLimitExceeded(Exception):
     """
@@ -16,7 +12,7 @@ class EmailUsageLimitExceeded(Exception):
 
     def __init__(self, email: str):
         self.email = email
-        self.message = f"Email {email} has been used more than {EMAIL_LIMIT} times. Cannot proceed."
+        self.message = f"Email {email} has been used more than {configs.aws_configs.EMAIL_LIMIT} times. Cannot proceed."
 
     def __str__(self) -> str:
         """
@@ -39,7 +35,7 @@ class CardUsageLimitExceeded(Exception):
 
     def __init__(self, card: str):
         self.email = card
-        self.message = f"Card {card} has been used more than {CARD_LIMIT} times. Cannot proceed."
+        self.message = f"Card {card} has been used more than {configs.aws_configs.CARD_LIMIT} times. Cannot proceed."
 
     def __str__(self) -> str:
         """

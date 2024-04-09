@@ -1,8 +1,6 @@
 import time
-from selenium import webdriver
-import undetected_chromedriver as uc
-from selenium.webdriver.chrome.options import Options
 
+import undetected_chromedriver as uc
 from async_simhandler import AsyncOnlineSimHandler
 from config import configs
 from imap_handler import ImapHandler
@@ -27,7 +25,7 @@ class BaseRegistrator:
         # self.options = Options()
         # self.options.binary_location = "/usr/bin/google-chrome"
         self.options = uc.ChromeOptions()
-        self.options.add_argument('--headless')
+        # self.options.add_argument('--headless')
         self.options.add_argument('--no-sandbox')
         self.options.add_argument('--disable-dev-shm-usage')
         # self.options.add_argument("--proxy-server=159.203.61.169:3128")
@@ -181,7 +179,7 @@ class AwsRegistrator(BaseRegistrator):
                 retry -= 1
             finally:
                 warning_shown = self.element_handler.is_element_present(
-                    locator="//a[@href='https://support.aws.amazon.com/#/contacts/aws-account-support']")
+                    locator="//a[@href='https://support.aws.amazon.com/#/contacts/aws-account-support']", name='warning on root step')
                 if not warning_shown and temp_root_name:
                     self.element_handler.try_solve_captcha(
                         xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
