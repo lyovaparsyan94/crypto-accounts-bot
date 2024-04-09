@@ -96,7 +96,7 @@ class ElementHandler:
                 return True
             return False
         except Exception:
-            awslogger.log_warning(f"The warning element '{name}' not shown")
+            awslogger.log_info(f"The warning element '{name}' not shown")
             return False
 
     def slow_input(self, input_field, sequence: str) -> None:
