@@ -1,12 +1,12 @@
 from config import configs
 from logs.aws_logger import awslogger
-from repository.file_repository import FileDataRepository
+from repository.file_repository import UserSimDataRepository
 from utils.custom_exceptions import CardUsageLimitExceeded, EmailUsageLimitExceeded
 
 
 class FileHandler:
     def __init__(self):
-        self.repo = FileDataRepository()
+        self.repo = UserSimDataRepository()
 
     def get_limit(self, value: str, field: str = 'cards') -> int:
         """

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class DataRepositoryABC(ABC):
+class SimCardRepository(ABC):
 
     @abstractmethod
     def save_data(self, data: dict, filename: str) -> None:
@@ -48,5 +48,20 @@ class DataRepositoryABC(ABC):
         Raises:
             FileNotFoundError: If the specified file does not exist.
             json.JSONDecodeError: If the file content cannot be decoded as JSON.
+        """
+        pass
+
+    @abstractmethod
+    def save_sim_data(self, current_sim: dict, path: str) -> None:
+        """
+        Save sim data to a specified path.
+
+        Args:
+            current_sim (dict): The current sim data to be saved.
+            path (str): The path where the data should be saved.
+
+        Returns:
+            None
+
         """
         pass

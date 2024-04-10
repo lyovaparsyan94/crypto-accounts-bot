@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import undetected_chromedriver as uc
@@ -25,7 +26,7 @@ class BaseRegistrator:
         # self.options = Options()
         # self.options.binary_location = "/usr/bin/google-chrome"
         self.options = uc.ChromeOptions()
-        # self.options.add_argument('--headless')
+        self.options.add_argument('--headless')
         self.options.add_argument('--no-sandbox')
         self.options.add_argument('--disable-dev-shm-usage')
         # self.options.add_argument("--proxy-server=159.203.61.169:3128")
@@ -118,7 +119,7 @@ class AwsRegistrator(BaseRegistrator):
             email = generate_mail()
             self.email = email
         acc_name_field = self.element_handler.wait_for_element(locator="//div//input[@name='fullName']", timeout=6,
-                                                               name='account field')
+                                                               name='account field',)
         acc_name_field.clear()
         self.account_name = self.email[0:-4].capitalize()
         self.element_handler.slow_input(acc_name_field, self.account_name)
@@ -136,7 +137,7 @@ class AwsRegistrator(BaseRegistrator):
             None
         """
         confirm_mail = self.element_handler.wait_for_element("//awsui-input[@id='otp']/div/input[@name='otp']",
-                                                             timeout=5)
+                                                             timeout=5, name='cofirm mail field',)
         confirm_mail.clear()
         if not self.password:
             verify_code = check_last_message(self.email)
@@ -150,8 +151,10 @@ class AwsRegistrator(BaseRegistrator):
             verify_button.click()
             time.sleep(2)
         while not verify_code:
-            not_you_button = self.driver.find_element(By.XPATH,
-                                                      "//*[@id='EmailValidationVerifyOTP']/fieldset/p/span[contains(text(), 'not you')]")
+            # not_you_button = self.driver.find_element(By.XPATH,
+            #                                           "//*[@id='EmailValidationVerifyOTP']/fieldset/p/span[contains(text(), 'not you')]")
+            not_you_button = self.element_handler.wait_for_element(
+                locator="//*[@id='EmailValidationVerifyOTP']/fieldset/p/span[contains(text(), 'not you')]", name='not you button')
             not_you_button.click()
             self.step_one()
 
@@ -179,7 +182,8 @@ class AwsRegistrator(BaseRegistrator):
                 retry -= 1
             finally:
                 warning_shown = self.element_handler.is_element_present(
-                    locator="//a[@href='https://support.aws.amazon.com/#/contacts/aws-account-support']", name='warning on root step')
+                    locator="//a[@href='https://support.aws.amazon.com/#/contacts/aws-account-support']",
+                    name='warning on root step')
                 if not warning_shown and temp_root_name:
                     self.element_handler.try_solve_captcha(
                         xpath="//div[contains(@class, 'Captcha_mainDisplay')]//img[@alt='captcha']")
@@ -220,7 +224,8 @@ class AwsRegistrator(BaseRegistrator):
         full_name_field = self.driver.find_element(By.XPATH, "//div//input[@name='address.fullName']")
         self.element_handler.slow_input(full_name_field, self.full_name)
 
-        self.phone = self.sim_handler.order_number()
+        # self.phone = self.sim_handler.order_number()
+        self.phone = asyncio.run(self.sim_handler.order_phone_number())
         region = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-1"]')
         region.click()
         country_select = self.driver.find_element(By.XPATH,
@@ -339,7 +344,7 @@ class AwsRegistrator(BaseRegistrator):
         Returns:
             None
         """
-        sms_code = self.sim_handler.wait_order_info()['sms']
+        sms_code = self.sim_handler.wait_phone_info()['sms']
         sms_input_field = self.element_handler.wait_for_element(locator='//div//input[@name="smsPin"]',
                                                                 name='sms field',
                                                                 timeout=10)
@@ -385,3 +390,4 @@ class AwsRegistrator(BaseRegistrator):
         self.step_six()
         self.step_seven()
         self.step_eight()
+

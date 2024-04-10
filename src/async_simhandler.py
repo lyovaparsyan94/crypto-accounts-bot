@@ -1,9 +1,9 @@
 import asyncio
-import json
 
 from config import configs
 from logs.aws_logger import awslogger
 from pyonlinesim import OnlineSMS
+from repository.file_repository import UserSimDataRepository
 
 
 class AsyncOnlineSimHandler:
@@ -18,8 +18,9 @@ class AsyncOnlineSimHandler:
         self.__api_token = api_token
         self.operation_id = None
         self.received_phone_number = None
+        self.repo = UserSimDataRepository()
 
-    async def __get_balance(self) -> str:
+    async def get_balance_info(self) -> str:
         """
         Retrieves the account balance from the SMS service.
 
@@ -28,6 +29,7 @@ class AsyncOnlineSimHandler:
         """
         async with OnlineSMS(api_key=self.__api_token) as client:
             result = await client.get_balance()
+            awslogger.log_info(f'balance: {result.balance}, frozen: {result.frozen_balance}')
             return result
 
     async def __get_service_info(self) -> dict:
@@ -48,8 +50,8 @@ class AsyncOnlineSimHandler:
                     return {f"{configs.aws_configs.ONLINE_SIM_SERVICE}": service.id, 'available_numbers': service.count,
                             'service_name': configs.aws_configs.ONLINE_SIM_SERVICE}
 
-    async def __order_number(self, service: str = configs.aws_configs.ONLINE_SIM_SERVICE,
-                             country: int = configs.aws_configs.ONLINE_COUNTRY_CODE) -> str:
+    async def order_phone_number(self, service: str = configs.aws_configs.ONLINE_SIM_SERVICE,
+                                 country: int = configs.aws_configs.ONLINE_COUNTRY_CODE) -> str:
         """
         Orders a phone number using the OnlineSMS API.
 
@@ -61,7 +63,7 @@ class AsyncOnlineSimHandler:
             str: The received phone number.
         """
         async with OnlineSMS(api_key=self.__api_token) as client:
-            order = await client.order_number(service=service, country=country, number=True)
+            order = await client.order_number(service=service, country=country, number=True, )
             if order:
                 received_number = order.number
                 self.operation_id = order.operation_id
@@ -71,22 +73,9 @@ class AsyncOnlineSimHandler:
                     "received_number": order.number,
                     "country": order.country,
                 }
-                self.save_sim_data(current_sim)
+                self.repo.save_sim_data(current_sim)
+                awslogger.log_info(f"new active ordered number: {received_number}")
                 return received_number
-
-    def save_sim_data(self, current_sim: dict, path: str = configs.dir_configs.PATH_OF_SIM_JSON) -> None:
-        """
-        Saves the current SIM data (operation ID, received phone number, and country) to a JSON file.
-
-        Args:
-            current_sim (dict): A dictionary containing the current SIM data.
-            path (str, optional): The path to the JSON file. Defaults to "current_sim.json".
-
-        Returns:
-            None
-        """
-        with open(f'{path}', 'w') as file:
-            json.dump(current_sim, file, indent=4)
 
     async def check_current_active_sim(self, operation_id: int) -> dict[str, str] | None:
         """
@@ -112,7 +101,7 @@ class AsyncOnlineSimHandler:
                     if my_orders.orders[0]:
                         order = my_orders.orders[0]
                         info = {'phone': order.number, 'country': order.country, 'service': order.service,
-                                'sms': order.message, 'operation_id': order.operation_id}
+                                'sms': order.message, 'operation_id': order.operation_id, }
                         self.operation_id = order.operation_id
                         self.received_phone_number = order.number
                         return info
@@ -122,7 +111,7 @@ class AsyncOnlineSimHandler:
             except Exception:
                 awslogger.log_critical("Number is not active")
 
-    async def __wait_order_info(self, operation_id: int) -> dict[str, str] | None:
+    async def wait_order_info(self, operation_id: int) -> dict[str, str] | None:
         """
         Waits for SMS information associated with the specified operation ID.
 
@@ -154,10 +143,10 @@ class AsyncOnlineSimHandler:
             except TimeoutError:
                 awslogger.log_critical("Timed out waiting for SMS.")
             except Exception:
-                awslogger.log_critical(f'standard info: {info}')
+                awslogger.log_critical(f'received info: {info}')
                 return None
 
-    async def __finish_order(self, operation_id: int) -> None:
+    async def close_card(self, operation_id: int) -> None:
         """
         Finishes the order associated with the specified operation ID.
 
@@ -167,28 +156,7 @@ class AsyncOnlineSimHandler:
         async with OnlineSMS(api_key=self.__api_token) as client:
             await client.finish_order(operation_id=operation_id)
 
-    def get_balance_info(self) -> str:
-        """
-        Retrieves the account balance and returns it as an awaitable.
-
-        Returns:
-            str: An awaitable representing the account balance.
-        """
-        result = asyncio.run(self.__get_balance())
-        return result
-
-    def order_number(self) -> str | None:
-        """
-        Orders a new phone number or retrieves an existing active number.
-
-        Returns:
-            str: The ordered phone number.
-        """
-        ordered_number = asyncio.run(self.__order_number())
-        awslogger.log_info(f"new active ordered_number: {ordered_number}")
-        return ordered_number
-
-    def wait_order_info(self, operation_id: int | None = None) -> dict | None:
+    def wait_phone_info(self, operation_id: int | None = None) -> dict | None:
         """
         Waits for order information related to the specified operation ID.
 
@@ -200,15 +168,8 @@ class AsyncOnlineSimHandler:
         """
         operation_id = operation_id or self.operation_id
         try:
-            return asyncio.run(self.__wait_order_info(operation_id))
+            return asyncio.run(self.wait_order_info(operation_id))
         except ValueError:
             return None
 
-    def finish_order(self, operation_id: int) -> None:
-        """
-        Finishes the order associated with the specified operation ID.
 
-        Args:
-            operation_id (int): The operation ID to finish.
-        """
-        asyncio.run(self.__finish_order(operation_id))

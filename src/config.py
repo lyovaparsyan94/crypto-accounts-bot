@@ -45,7 +45,6 @@ class AwsSettings(BaseSettings):
 
 class SubSettings(BaseSettings):
     sub_field: str | None
-    # dir_configs = DirConfigs()
 
 
 class Config(BaseSettings):

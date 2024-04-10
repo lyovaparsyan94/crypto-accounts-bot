@@ -2,10 +2,10 @@ import json
 
 from config import configs
 from logs.aws_logger import awslogger
-from repository.abstract_repository import DataRepositoryABC
+from repository.abc_sim_repository import SimCardRepository
 
 
-class FileDataRepository(DataRepositoryABC):
+class UserSimDataRepository(SimCardRepository):
     def save_data(self, data: dict, filename: str = configs.dir_configs.PATH_TO_SAVE) -> None:
         """
         Saves data to a specified file in JSON format.
@@ -66,5 +66,16 @@ class FileDataRepository(DataRepositoryABC):
             awslogger.log_critical(f"File '{path}' not found. Please make sure the file exists.")
             return {}
 
+    def save_sim_data(self, current_sim: dict, path: str = configs.dir_configs.PATH_OF_SIM_JSON) -> None:
+        """
+        Saves the current SIM data (operation ID, received phone number, and country) to a JSON file.
 
-repo = FileDataRepository()
+        Args:
+            current_sim (dict): A dictionary containing the current SIM data.
+            path (str, optional): The path to the JSON file. Defaults to "current_sim.json".
+
+        Returns:
+            None
+        """
+        with open(f'{path}', 'w') as file:
+            json.dump(current_sim, file, indent=4)

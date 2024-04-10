@@ -71,7 +71,7 @@ class ElementHandler:
                 return True
             return False
         except NoSuchElementException:
-            awslogger.log_warning(f"Element {name} with type {by_type} not found {name}")
+            awslogger.log_warning(f"Element {name} not found {name}")
             return False
         except Exception:
             awslogger.log_warning(f"Unknown error {name}")
@@ -96,7 +96,7 @@ class ElementHandler:
                 return True
             return False
         except Exception:
-            awslogger.log_info(f"The warning element '{name}' not shown")
+            awslogger.log_info(f"warning '{name}' not shown")
             return False
 
     def slow_input(self, input_field: WebElement, sequence: str) -> None:
@@ -117,6 +117,7 @@ class ElementHandler:
         for symbol in sequence:
             input_field.send_keys(symbol)
             sleep(0.10)
+        awslogger.log_info(f'filled {sequence} in input field')
 
     def try_solve_captcha(self, xpath: str, retry: int = 5, interval: int = 3) -> None:
         """

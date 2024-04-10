@@ -10,8 +10,7 @@ class CaptchaSolver:
         Args:
             driver (WebDriver): The Selenium WebDriver instance.
         """
-        self.__api_key = captcha_key
-        self.solver = TwoCaptcha(self.__api_key)
+        self.solver = TwoCaptcha(apiKey=captcha_key)
         self.driver = driver
 
     def get_captcha_code(self, image_src: str) -> str:
