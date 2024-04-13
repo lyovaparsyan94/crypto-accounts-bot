@@ -9,7 +9,7 @@ handlers:
     level: INFO
   file:
     class: logging.FileHandler
-    filename: aws_logs.log
+    filename: C:\Users\parsy\OneDrive\Desktop\DOT\crypto-accounts-bot\src\logs\aws_logs.log
     formatter: standard
     level: WARNING
 root:
@@ -18,4 +18,3 @@ root:
   - file
   level: INFO
 version: 1
-

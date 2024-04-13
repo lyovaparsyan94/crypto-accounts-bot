@@ -44,7 +44,7 @@ class AwsSettings(BaseSettings):
 
 
 class SubSettings(BaseSettings):
-    sub_field: str
+    sub_field: str | None
 
 
 class Config(BaseSettings):
