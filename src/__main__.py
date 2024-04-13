@@ -15,9 +15,10 @@ def main() -> None:
     """
     try:
         for i in range(1, 201):
-            aws = AwsRegistrator(f'email+{i}@example.com', 'your_password')
+            aws = AwsRegistrator(email=generate_mail()) # use to generate random temporary onetime mail (for tests)
+            # aws = AwsRegistrator(f'email+{i}@example.com', 'your_password')
             aws.register()
-            print()
+            awslogger.log_info(f"{i} AWS instances created")
     except BaseException as e:
         awslogger.log_critical(f"\nError creating AWS instance: {e}\n")
 
