@@ -14,9 +14,10 @@ def main() -> None:
         None
     """
     try:
-        aws = AwsRegistrator(email=generate_mail())  # use to generate random temporary onetime mail (for tests)
-        # aws = AwsRegistrator('yourmail_example@gmx.com', 'your_password_')
-        aws.register()
+        for i in range(9, 205):
+            # aws = AwsRegistrator(f'levaparsyan+{i}@dot-agency.net', 'gjdl cwfg hqko vmwu')
+            # aws.register()
+            print()
     except BaseException as e:
         awslogger.log_critical(f"\nError creating AWS instance: {e}\n")
 

@@ -18,7 +18,7 @@ class UserSimDataRepository(SimCardRepository):
             PermissionError: If the file cannot be written due to permission issues.
         """
         try:
-            with open(f"{filename}", "w") as file:
+            with open(filename, "w") as file:
                 json.dump(data, file, indent=2)
         except PermissionError:
             raise PermissionError(f"Permission denied. Cannot write to file '{filename}'.")
@@ -38,7 +38,7 @@ class UserSimDataRepository(SimCardRepository):
             json.JSONDecodeError: If the file content cannot be decoded as JSON.
         """
         try:
-            with open(fr"{filename}") as file:
+            with open(filename) as file:
                 return json.load(file)
         except FileNotFoundError:
             raise FileNotFoundError(f"File '{filename}' not found.")
@@ -59,7 +59,7 @@ class UserSimDataRepository(SimCardRepository):
             - The JSON file should contain a dictionary with keys: "operation_id", "received_number", and "country".
         """
         try:
-            with open(f"{path}") as file:
+            with open(path) as file:
                 current_number_info = json.load(file)
                 return current_number_info
         except FileNotFoundError:
@@ -77,5 +77,5 @@ class UserSimDataRepository(SimCardRepository):
         Returns:
             None
         """
-        with open(f'{path}', 'w') as file:
+        with open(path, 'w') as file:
             json.dump(current_sim, file, indent=4)

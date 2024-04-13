@@ -1,4 +1,5 @@
 from time import sleep
+from typing import Callable, Any
 
 from config import configs
 from logs.aws_logger import awslogger
@@ -26,7 +27,7 @@ class ElementHandler:
         self.driver = driver
         self.captcha_solver = CaptchaSolver(driver=self.driver, captcha_key=configs.private_configs.CAPTCHA_API_KEY)
 
-    def wait_for_element(self, locator: str, by_type: By = By.XPATH, timeout: int = 30, poll_frequency: float = 0.5,
+    def wait_for_element(self, locator: str, by_type: str = By.XPATH, timeout: int = 30, poll_frequency: float = 0.5,
                          name: str = '') -> WebElement:
         """
         Wait for an element to become visible.
@@ -119,6 +120,43 @@ class ElementHandler:
             sleep(0.10)
         awslogger.log_info(f'filled {sequence} in input field')
 
+    @staticmethod
+    def wait_for_result(func: Callable[..., Any], period: int = 60, interval: int = 3) -> Callable[..., Any]:
+        """
+        Decorator that waits for a result from the given function.
+
+        Args:
+            func (Callable[..., Any]): The function to be wrapped.
+            period (int, optional): Total waiting time in seconds. Defaults to 60.
+            interval (int, optional): Time between retries in seconds. Defaults to 3.
+
+        Returns:
+            Callable[..., Any]: The wrapped function with retry logic.
+        """
+
+        def wrapper(self, *args, **kwargs) -> Any:
+            """
+            Wrapper function that adds retry logic to the original function.
+
+            Args:
+                self: Instance of the class.
+                *args: Positional arguments for the original function.
+                **kwargs: Keyword arguments for the original function.
+
+            Returns:
+                Any: Result of the original function or None if timed out.
+            """
+            for _ in range(period):
+                awslogger.log_info(f"waiting for message from: {func.__name__}")
+                result = func(self, *args, **kwargs)
+                if result:
+                    awslogger.log_info(f"function {func.__name__} completed with result: {result}")
+                    return result
+                sleep(interval)
+            awslogger.log_critical(f"Timed out waiting for {func.__name__}")
+
+        return wrapper
+
     def try_solve_captcha(self, xpath: str, retry: int = 5, interval: int = 3) -> None:
         """
         Attempt to solve a captcha using the provided XPath.
@@ -134,7 +172,7 @@ class ElementHandler:
         awslogger.log_info('trying to solve captcha')
         warning1 = True
         warning2 = True
-        while (retry >= 1 and warning1) or (retry >= 1 and warning2):
+        while (retry >= 1 and warning1 is not None) or (retry >= 1 and warning2 is not None):
             try:
                 self.captcha_resolve(xpath=xpath)
             except BaseException:
@@ -142,10 +180,10 @@ class ElementHandler:
                 sleep(interval)
             finally:
                 warning1 = self.wait_for_element(locator="//a[@href='https://aws.amazon.com/support/createCase']",
-                                                 timeout=2)
+                                                 name='warning captcha 1', timeout=3)
                 warning2 = self.wait_for_element(
                     locator="//form[@id='IdentityVerification']//div[contains(text(), 'Security check characters are incorrect. Please try again.')]",
-                    timeout=2)
+                    name='warning captcha 2', timeout=3)
 
     def captcha_resolve(self, xpath: str) -> None:
         """

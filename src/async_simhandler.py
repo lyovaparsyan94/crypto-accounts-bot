@@ -48,7 +48,7 @@ class AsyncOnlineSimHandler:
                     awslogger.log_info(
                         f'ID: {service.id} | Available Numbers: {service.count} | Service: {service.service} | Price: {service.price}')
                     return {f"{configs.aws_configs.ONLINE_SIM_SERVICE}": service.id, 'available_numbers': service.count,
-                            'service_name': configs.aws_configs.ONLINE_SIM_SERVICE}
+                            'service_name': configs.aws_configs.ONLINE_SIM_SERVICE, }
 
     async def order_phone_number(self, service: str = configs.aws_configs.ONLINE_SIM_SERVICE,
                                  country: int = configs.aws_configs.ONLINE_COUNTRY_CODE) -> str:
@@ -63,7 +63,7 @@ class AsyncOnlineSimHandler:
             str: The received phone number.
         """
         async with OnlineSMS(api_key=self.__api_token) as client:
-            order = await client.order_number(service=service, country=country, number=True, )
+            order = await client.order_number(service=service, country=country, number=True)
             if order:
                 received_number = order.number
                 self.operation_id = order.operation_id
@@ -111,7 +111,7 @@ class AsyncOnlineSimHandler:
             except Exception:
                 awslogger.log_critical("Number is not active")
 
-    async def wait_order_info(self, operation_id: int) -> dict[str, str] | None:
+    async def wait_order_info(self, operation_id: int | None = None) -> dict | None:
         """
         Waits for SMS information associated with the specified operation ID.
 
@@ -126,6 +126,7 @@ class AsyncOnlineSimHandler:
             - Waits for up to 60 seconds for SMS information.
         """
         async with OnlineSMS(api_key=self.__api_token) as client:
+            operation_id = operation_id or self.operation_id
             period = 60
             interval = 5
             try:
@@ -135,7 +136,7 @@ class AsyncOnlineSimHandler:
                     if my_orders.orders[0]:
                         order = my_orders.orders[0]
                         info = {'phone': order.number, 'country': order.country, 'service': order.service,
-                                'sms': order.message, 'operation_id': order.operation_id}
+                                'sms': order.message, 'operation_id': order.operation_id, }
                         if order.message:
                             awslogger.log_info(f'standard info: {info}')
                             return info
@@ -155,21 +156,3 @@ class AsyncOnlineSimHandler:
         """
         async with OnlineSMS(api_key=self.__api_token) as client:
             await client.finish_order(operation_id=operation_id)
-
-    def wait_phone_info(self, operation_id: int | None = None) -> dict | None:
-        """
-        Waits for order information related to the specified operation ID.
-
-        Args:
-            operation_id (Optional[str]): The operation ID to wait for (defaults to self.operation_id).
-
-        Returns:
-            dict | None: Information related to the order if available, else None.
-        """
-        operation_id = operation_id or self.operation_id
-        try:
-            return asyncio.run(self.wait_order_info(operation_id))
-        except ValueError:
-            return None
-
-

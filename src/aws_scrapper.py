@@ -26,9 +26,12 @@ class BaseRegistrator:
         # self.options = Options()
         # self.options.binary_location = "/usr/bin/google-chrome"
         self.options = uc.ChromeOptions()
-        self.options.add_argument('--headless')
+        # self.options.add_argument('--headless')
         self.options.add_argument('--no-sandbox')
         self.options.add_argument('--disable-dev-shm-usage')
+        prefs = {"credentials_enable_service": False,
+                 "profile.password_manager_enabled": False}
+        self.options.add_experimental_option("prefs", prefs)
         # self.options.add_argument("--proxy-server=159.203.61.169:3128")
         # self.options.add_argument(rf'--user-data-dir={USER_DATA_DIR}')
         # self.driver = webdriver.Chrome()
@@ -119,7 +122,7 @@ class AwsRegistrator(BaseRegistrator):
             email = generate_mail()
             self.email = email
         acc_name_field = self.element_handler.wait_for_element(locator="//div//input[@name='fullName']", timeout=6,
-                                                               name='account field',)
+                                                               name='account field', )
         acc_name_field.clear()
         self.account_name = self.email[0:-4].capitalize()
         self.element_handler.slow_input(acc_name_field, self.account_name)
@@ -137,7 +140,7 @@ class AwsRegistrator(BaseRegistrator):
             None
         """
         confirm_mail = self.element_handler.wait_for_element("//awsui-input[@id='otp']/div/input[@name='otp']",
-                                                             timeout=5, name='cofirm mail field',)
+                                                             timeout=5, name='cofirm mail field', )
         confirm_mail.clear()
         if not self.password:
             verify_code = check_last_message(self.email)
@@ -154,7 +157,8 @@ class AwsRegistrator(BaseRegistrator):
             # not_you_button = self.driver.find_element(By.XPATH,
             #                                           "//*[@id='EmailValidationVerifyOTP']/fieldset/p/span[contains(text(), 'not you')]")
             not_you_button = self.element_handler.wait_for_element(
-                locator="//*[@id='EmailValidationVerifyOTP']/fieldset/p/span[contains(text(), 'not you')]", name='not you button')
+                locator="//*[@id='EmailValidationVerifyOTP']/fieldset/p/span[contains(text(), 'not you')]",
+                name='not you button')
             not_you_button.click()
             self.step_one()
 
@@ -171,12 +175,12 @@ class AwsRegistrator(BaseRegistrator):
         """
         root_name = False
         warning_shown = True
-        verify_button = self.driver.find_element(By.XPATH,
-                                                 "//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]")
+        verify_button = self.element_handler.wait_for_element(
+            locator="//*[@id='CredentialCollection']/fieldset/awsui-button[1]/button[span[text()='Continue (step 1 of 5)']]",
+            name='verify button root')
         while not root_name and warning_shown:
             try:
                 temp_root_name = self.root_confirm()
-                verify_button.click()
             except BaseException:
                 time.sleep(interval)
                 retry -= 1
@@ -193,6 +197,8 @@ class AwsRegistrator(BaseRegistrator):
                     root_name = temp_root_name
                     is_created_user_data = self.file_handler.create_aws_user_info(root_password=temp_root_name)
                     self.user_created = is_created_user_data
+                else:
+                    verify_button.click()
 
     def root_confirm(self) -> str:
         """
@@ -217,54 +223,49 @@ class AwsRegistrator(BaseRegistrator):
         Returns:
             None
         """
+        while not self.element_handler.is_element_present('//*[@id="awsui-radio-button-2"]'):
+            time.sleep(1)
+        else:
+            personal = self.driver.find_element(By.XPATH, '//*[@id="awsui-radio-button-2"]')
+            personal.click()
+            time.sleep(1)
+            full_name_field = self.driver.find_element(By.XPATH, "//div//input[@name='address.fullName']")
+            self.element_handler.slow_input(full_name_field, self.full_name)
+            self.phone = asyncio.run(self.sim_handler.order_phone_number())
+            region = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-1"]')
+            region.click()
+            time.sleep(1)
+            country_select = self.driver.find_element(By.XPATH,
+                                                      f"//div[contains(@data-value, '{get_country_code(self.phone)}')]")
+            country_select.click()
+            phone_field = self.driver.find_element(By.XPATH, '//input[@name="address.phoneNumber"]')
+            self.element_handler.slow_input(phone_field, get_national_number(self.phone))
 
-        personal = self.element_handler.wait_for_element(locator='//*[@id="awsui-radio-button-2"]', name='personal')
-        personal.click()
-
-        full_name_field = self.driver.find_element(By.XPATH, "//div//input[@name='address.fullName']")
-        self.element_handler.slow_input(full_name_field, self.full_name)
-
-        # self.phone = self.sim_handler.order_number()
-        self.phone = asyncio.run(self.sim_handler.order_phone_number())
-        region = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-1"]')
-        region.click()
-        country_select = self.driver.find_element(By.XPATH,
-                                                  f"//div[contains(@data-value, '{get_country_code(self.phone)}')]")
-        country_select.click()
-
-        phone_field = self.driver.find_element(By.XPATH, '//input[@name="address.phoneNumber"]')
-        self.element_handler.slow_input(phone_field, get_national_number(self.phone))
-
-        country_or_region = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-2"]')
-        country_or_region.click()
-        found_county = self.driver.find_element(By.XPATH,
-                                                f"//div[contains(@data-value, '{get_country_code(self.phone)}') and contains(@class, 'awsui-select-option-selectable')]")
-        found_county.click()
-        address_field = self.driver.find_element(By.XPATH, '//input[@name="address.addressLine1"]')
-        self.element_handler.slow_input(address_field, self.full_address)
-
-        city = self.driver.find_element(By.XPATH, '//input[@name="address.city"]')
-        self.element_handler.slow_input(city, self.city)
-
-        state_region_field = self.driver.find_element(By.XPATH, '//input[@name="address.state"]')
-        self.element_handler.slow_input(state_region_field, self.state)
-
-        postal_code = self.driver.find_element(By.XPATH, '//input[@name="address.postalCode"]')
-        self.element_handler.slow_input(postal_code, self.postal_code)
-
-        agree_checkbox = self.driver.find_element(By.XPATH, '//input[@name="agreement"]')
-        agree_checkbox.click()
-
-        continue_button = self.driver.find_element(By.XPATH,
-                                                   '//*[@id="ContactInformation"]/fieldset/awsui-button/button')
-        continue_button.click()
-        time.sleep(2)
-        self.update_aws_multiple_fields(root_password=self.root_name,
-                                        fields=['first_name', 'last_name', 'phone', 'email',
-                                                'account_name',
-                                                'verify_email_code', 'full_name', 'city', 'state',
-                                                'country',
-                                                'postal_code', 'full_address'])
+            country_or_region = self.driver.find_element(By.XPATH, '//*[@id="awsui-select-2"]')
+            country_or_region.click()
+            found_county = self.driver.find_element(By.XPATH,
+                                                    f"//div[contains(@data-value, '{get_country_code(self.phone)}') and contains(@class, 'awsui-select-option-selectable')]")
+            found_county.click()
+            address_field = self.driver.find_element(By.XPATH, '//input[@name="address.addressLine1"]')
+            self.element_handler.slow_input(address_field, self.full_address)
+            city = self.driver.find_element(By.XPATH, '//input[@name="address.city"]')
+            self.element_handler.slow_input(city, self.city)
+            state_region_field = self.driver.find_element(By.XPATH, '//input[@name="address.state"]')
+            self.element_handler.slow_input(state_region_field, self.state)
+            postal_code = self.driver.find_element(By.XPATH, '//input[@name="address.postalCode"]')
+            self.element_handler.slow_input(postal_code, self.postal_code)
+            agree_checkbox = self.driver.find_element(By.XPATH, '//input[@name="agreement"]')
+            agree_checkbox.click()
+            continue_button = self.driver.find_element(By.XPATH,
+                                                       '//*[@id="ContactInformation"]/fieldset/awsui-button/button')
+            continue_button.click()
+            time.sleep(2)
+            self.update_aws_multiple_fields(root_password=self.root_name,
+                                            fields=['first_name', 'last_name', 'phone', 'email',
+                                                    'account_name',
+                                                    'verify_email_code', 'full_name', 'city',
+                                                    'country',
+                                                    'postal_code', 'full_address', ])
 
     def step_five(self) -> None:
         """
@@ -344,7 +345,8 @@ class AwsRegistrator(BaseRegistrator):
         Returns:
             None
         """
-        sms_code = self.sim_handler.wait_phone_info()['sms']
+        sim_info = asyncio.run(self.sim_handler.wait_order_info())
+        sms_code = sim_info['sms']
         sms_input_field = self.element_handler.wait_for_element(locator='//div//input[@name="smsPin"]',
                                                                 name='sms field',
                                                                 timeout=10)
@@ -354,8 +356,8 @@ class AwsRegistrator(BaseRegistrator):
         verify_sms_button = self.driver.find_element(By.XPATH, '//button[contains(span, "Continue (step 4 of 5)")]')
         verify_sms_button.click()
         self.file_handler.update_aws_user_info(root_password=self.root_name, field='phone', value=self.phone)
-        finish_button = self.driver.find_element(By.XPATH,
-                                                 '//*[@id="SupportPlan"]/fieldset/div[2]/awsui-button/button')
+        finish_button = self.element_handler.wait_for_element(
+            locator='//*[@id="SupportPlan"]/fieldset/div[2]/awsui-button/button', name='finish button')
         finish_button.click()
         time.sleep(2)
 
@@ -390,4 +392,4 @@ class AwsRegistrator(BaseRegistrator):
         self.step_six()
         self.step_seven()
         self.step_eight()
-
+        self.driver.quit()

@@ -9,12 +9,12 @@ ENV_DIR = join(project_dir, '.env')
 
 
 class PrivateConfigs(BaseSettings):
-    CVV: str | None
-    EXPIRE_DATE: str | None
-    CARD_NUMBER: str | None
-    CARDHOLDER: str | None
-    CAPTCHA_API_KEY: str | None
-    SIM_API_TOKEN: str | None
+    CVV: str
+    EXPIRE_DATE: str
+    CARD_NUMBER: str
+    CARDHOLDER: str
+    CAPTCHA_API_KEY: str
+    SIM_API_TOKEN: str
 
 
 class DirConfigs(BaseSettings):
@@ -44,7 +44,7 @@ class AwsSettings(BaseSettings):
 
 
 class SubSettings(BaseSettings):
-    sub_field: str | None
+    sub_field: str
 
 
 class Config(BaseSettings):
