@@ -6,7 +6,7 @@ from utils.element_handler import ElementHandler
 
 
 class ImapHandler:
-    def __init__(self, user: str, password: str, host: str = 'imap.gmx.com', imap_ssl_port: int = 993) -> None:
+    def __init__(self, user: str, password: str, imap_ssl_port: int = 993) -> None:
         """
         Initialize an ImapHandler instance.
 
@@ -14,8 +14,8 @@ class ImapHandler:
             user (str): The IMAP user (email address).
             password (str): The IMAP password.
         """
-        # self.host = host
-        self.host = 'imap.gmail.com'
+        self.host = 'imap.gmx.com'
+        # self.host = 'imap.gmail.com'
         self.imap_ssl_port = imap_ssl_port
         self.user = user
         self.password = password

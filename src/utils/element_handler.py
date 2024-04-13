@@ -72,7 +72,7 @@ class ElementHandler:
                 return True
             return False
         except NoSuchElementException:
-            awslogger.log_warning(f"Element {name} not found {name}")
+            awslogger.log_warning(f"Element {name} not found {name}, reason: maybe you are using test emails")
             return False
         except Exception:
             awslogger.log_warning(f"Unknown error {name}")
