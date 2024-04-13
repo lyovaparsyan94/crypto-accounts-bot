@@ -26,7 +26,7 @@ class BaseRegistrator:
         # self.options = Options()
         # self.options.binary_location = "/usr/bin/google-chrome"
         self.options = uc.ChromeOptions()
-        # self.options.add_argument('--headless')
+        self.options.add_argument('--headless')
         self.options.add_argument('--no-sandbox')
         self.options.add_argument('--disable-dev-shm-usage')
         prefs = {"credentials_enable_service": False,

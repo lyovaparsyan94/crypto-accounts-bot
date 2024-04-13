@@ -14,9 +14,9 @@ def main() -> None:
         None
     """
     try:
-        for i in range(9, 205):
-            # aws = AwsRegistrator(f'levaparsyan+{i}@dot-agency.net', 'gjdl cwfg hqko vmwu')
-            # aws.register()
+        for i in range(1, 201):
+            aws = AwsRegistrator(f'email+{i}@example.com', 'your_password')
+            aws.register()
             print()
     except BaseException as e:
         awslogger.log_critical(f"\nError creating AWS instance: {e}\n")
