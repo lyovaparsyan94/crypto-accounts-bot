@@ -1,12 +1,14 @@
 import re
 
+from config import configs
 from imap_tools import A, MailBox
 from logs.aws_logger import awslogger
 from utils.element_handler import ElementHandler
 
 
 class ImapHandler:
-    def __init__(self, user: str, password: str, imap_ssl_port: int = 993) -> None:
+    def __init__(self, user: str, password: str, host: str = configs.private_configs.IMAP_HOST,
+                 imap_ssl_port: int = 993) -> None:
         """
         Initialize an ImapHandler instance.
 
@@ -14,8 +16,7 @@ class ImapHandler:
             user (str): The IMAP user (email address).
             password (str): The IMAP password.
         """
-        self.host = 'imap.gmx.com'
-        # self.host = 'imap.gmail.com'
+        self.host = host
         self.imap_ssl_port = imap_ssl_port
         self.user = user
         self.password = password
@@ -30,7 +31,7 @@ class ImapHandler:
             str: The latest verification code found in the inbox.
         """
         verify_codes = ['']
-        with MailBox(self.host).login(self.user, self.password, '[Gmail]/All Mail') as mailbox:
+        with MailBox(self.host).login(self.user, self.password, 'INBOX') as mailbox:
             awslogger.log_info(f"checking email messages from: {self.sender}")
             for msg in mailbox.fetch(A(from_=self.sender)):
                 awslogger.log_info('collecting ... ')

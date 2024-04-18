@@ -1,13 +1,14 @@
 import asyncio
 import time
 
-import undetected_chromedriver as uc
 from async_simhandler import AsyncOnlineSimHandler
 from config import configs
 from imap_handler import ImapHandler
 from logs.aws_logger import awslogger
 from selenium.common import NoSuchElementException
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from seleniumwire import webdriver
 from utils.element_handler import ElementHandler
 from utils.file_handler import FileHandler
 from utils.phone_identifier import get_country_code, get_national_number
@@ -23,19 +24,43 @@ class BaseRegistrator:
 
         Initializes the Chrome WebDriver.
         """
-        # self.options = Options()
-        # self.options.binary_location = "/usr/bin/google-chrome"
-        self.options = uc.ChromeOptions()
-        self.options.add_argument('--headless')
-        self.options.add_argument('--no-sandbox')
-        self.options.add_argument('--disable-dev-shm-usage')
-        prefs = {"credentials_enable_service": False,
-                 "profile.password_manager_enabled": False}
-        self.options.add_experimental_option("prefs", prefs)
-        # self.options.add_argument("--proxy-server=159.203.61.169:3128")
-        # self.options.add_argument(rf'--user-data-dir={USER_DATA_DIR}')
-        # self.driver = webdriver.Chrome()
-        self.driver = uc.Chrome(options=self.options)
+        self.USERNAME = configs.private_configs.USERNAME
+        self.PASSWORD = configs.private_configs.PASSWORD
+        self.ENDPOINT = configs.private_configs.ENDPOINT
+        self.driver = self.create_browser()
+
+    def create_driver(self):
+        options = Options()
+        # options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_argument('--disable-web-security')
+        options.add_argument("--lang=en-US")
+        options.add_argument("--user-agent=Mozilla/5.4235.Safari/23.Windows10.1")
+        prefs = {}
+        prefs["profile.default_content_settings.popups"] = 0
+        prefs["profile.default_content_setting_values.cookies"] = 1
+        prefs["profile.cookie_controls_mode"] = 0
+
+        options.add_experimental_option("prefs", prefs)
+        options.add_experimental_option('excludeSwitches', ['enable-automation'])
+        options.add_experimental_option('useAutomationExtension', False)
+
+        wire_options = {
+            'proxy': {
+                'http': f'https://customer-awsworker-sessid-0198906550-sesstime-10:{self.PASSWORD}@{self.ENDPOINT}',
+                'https': f'https://customer-awsworker-sessid-0198906550-sesstime-10:{self.PASSWORD}@{self.ENDPOINT}',
+                'no_proxy': 'localhost,127.0.0.1'
+            }
+        }
+        return webdriver.Chrome(options=options, seleniumwire_options=wire_options)
+
+    def create_browser(self):
+        self.driver = self.create_driver()
+        self.driver.maximize_window()
+        return self.driver
 
 
 class AwsRegistrator(BaseRegistrator):
@@ -52,11 +77,12 @@ class AwsRegistrator(BaseRegistrator):
         self.file_handler = FileHandler()
         self.file_handler.validate_card_and_email(email=self.email, card=self.card)
         super().__init__()
+        self.element_handler = ElementHandler(driver=self.driver)
         self.password = password
-        self.cvv, self.valid_date = configs.private_configs.CVV, configs.private_configs.EXPIRE_DATE
+        self.valid_date = self.get_valid_date()
+        self.cvv = configs.private_configs.CVV
         self.account_name = email[0:-4].capitalize()
         self.user_created = False
-        self.element_handler = ElementHandler(driver=self.driver)
         self.sim_handler = AsyncOnlineSimHandler(api_token=configs.private_configs.SIM_API_TOKEN)
         self.root_name = None
         self.verify_email_code = None
@@ -68,6 +94,23 @@ class AwsRegistrator(BaseRegistrator):
         self.url = configs.aws_configs.URL
         if password:
             self.imap_instance = ImapHandler(self.email, self.password)
+
+    def get_valid_date(self, expire_date: str = configs.private_configs.EXPIRE_DATE) -> str:
+        """
+        Returns a valid date based on the provided `expire_date`.
+
+        Args:
+            expire_date (str, optional): The input expiration date.
+            Defaults to the value from `configs.private_configs.EXPIRE_DATE`.
+
+        Returns:
+            str: A valid bank expire date in the format 'MM/YYYY'.
+        """
+        if len(expire_date[3:]) == 2:
+            valid_date = expire_date[:3] + '20' + expire_date[3:]
+            return valid_date
+        else:
+            return configs.private_configs.EXPIRE_DATE
 
     def open_page(self) -> None:
         """

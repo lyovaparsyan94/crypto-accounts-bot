@@ -15,6 +15,13 @@ class PrivateConfigs(BaseSettings):
     CARDHOLDER: str
     CAPTCHA_API_KEY: str
     SIM_API_TOKEN: str
+    IMAP_HOST: str
+    USERNAME: str
+    PASSWORD: str
+    ENDPOINT: str
+    MAIL: str
+    IMAP_MAIL_PASSWORD: str
+
 
 
 class DirConfigs(BaseSettings):

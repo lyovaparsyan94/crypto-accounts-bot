@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from time import sleep
-from typing import Callable, Any
+from typing import Any
 
 from config import configs
 from logs.aws_logger import awslogger
